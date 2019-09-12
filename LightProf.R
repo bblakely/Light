@@ -36,11 +36,16 @@ splits<-splitzip('LP_07_31')
 
 #Merge, clip
 
-combine<-function(dat, ts, split){
+combine<-function(dat, ts, split, doy=unique(ts$DOY)){
 
-bigdat<-cbind(ts, dat)
+bigdat.all<-cbind(ts, dat)
+
+bigdat<-bigdat.all[bigdat.all$DOY%in%doy,]
+
+
 plot.combine<-merge(split, bigdat, by='dectime', all=TRUE)
 
+                           
 both.str<-max(min(which(!is.na(plot.combine$row))), min(which(!is.na(plot.combine$TIMESTAMP))))
 both.end<-min(max(which(!is.na(plot.combine$row))), max(which(!is.na(plot.combine$TIMESTAMP))))
 
@@ -51,7 +56,7 @@ return(plot.cl)
 
 }
 
-plot.cl<-combine(dat=lp.raw, ts=lp.ts, split=splits)
+plot.cl<-combine(dat=lp.raw, ts=lp.ts, split=splits, doy=212)
 
 
 plotsplit=function(dat, numcol=c(1:3,5:8,11:18), out='mean', noise.tol=200){
@@ -88,10 +93,54 @@ for (o in 1:length(uniquerows)){
     }
     else{
       
-    if(length(loc)==8){print(paste("row", o, "range", a, "is doubled"))}
-    else if(length(loc)==0){print(paste("row", o, "range", a, "is missing"))}
-    else{print(paste("row", o, "range", a, "is irregular;","There are", length(which(dat$row==uniquerows[o] & dat$range==uniqueranges[a])), "records with this label"))}
+    if(length(loc)==8){print(paste("row", uniquerows[o], "range", uniqueranges[a], "is doubled"))}
+    else if(length(loc)==0){print(paste("row", uniquerows[o], "range", uniqueranges[a], "is missing"))}
+    else{print(paste("row", uniquerows[o], "range", uniqueranges[a], "is irregular;","There are", length(which(dat$row==uniquerows[o] & dat$range==uniqueranges[a])), "records with this label"))}
     
+      #if there's only one 'end' or 'start' recording, grab the corresponding start/end
+      if(length(which(dat$io[loc]=='e'))==2){ #if you only have end
+        
+        ends<-loc[which(dat$io[loc]=='e')] #loc at the end record to match
+        tdiff<-abs(dat$dectime[loc]-mean(dat$dectime[loc[which(dat$io[loc]=='e')]]));tdiff[tdiff==0]<-NA #tdiff are the time differences; NaN out zeroes because those are the end times
+        starts<-loc[which(tdiff==min(tdiff, na.rm=TRUE))] #which record is closest to the end times
+        
+        loc.rep<-c(starts, ends)
+        
+        
+       print(paste("row", uniquerows[o], "range", uniqueranges[a], "is resolved by matching single end record"))
+        
+        
+      }
+      
+      #if there's only one start and multiple ends (probably rare), same procedure
+      if(length(which(dat$io[loc]=='s'))==2){ #if you only have end
+        
+        ends<-loc[which(dat$io[loc]=='s')] #loc at the ends
+        tdiff<-abs(dat$dectime[loc]-mean(dat$dectime[loc[which(dat$io[loc]=='s')]]));tdiff[tdiff==0]<-NA #tdiff are the time differences; NaN out zeroes because those are the end times
+        starts<-loc[which(tdiff==min(tdiff, na.rm=TRUE))] #which record is closest to the end times
+        
+        loc.rep<-c(starts, ends)
+        
+        print(paste("row", uniquerows[o], "range", uniqueranges[a], "is resolved by matching single start record"))
+              
+      }
+      
+      #if there are multiples of both, take latest matched pair that has a reasonable time recorded
+      
+      
+      #Now do the thing you do for normal records with the correct timestamps
+      ind<-c(min(loc.rep):max(loc.rep))
+      datsub<-dat[ind,]
+      
+      bigdf<-rbind(bigdf, datsub)
+      
+      #flagging for noise
+      ranges<-apply(datsub[,numcol],2,FUN=function(x) range(x)[2]-range(x)[1])[10:15]
+      noiseflag<-length(which(ranges>noise.tol))
+      
+      meandf[count,]<-c(colMeans(datsub[,numcol], na.rm=TRUE), noiseflag)
+      
+      
       }
   }
 }
@@ -107,18 +156,17 @@ plotmeans$ns<-'n';
 plotmeans.rowf<-(plotmeans$row-1)/4
 plotmeans$ns[plotmeans.rowf %% 2 == 0]<-'s'
 
+#quality filter
+#will have options to filter on noise, length of record
 
 plotdat<-plotmeans[,10:15]
 
+colgr<-colorRampPalette(c('cyan', 'antiquewhite', 'orange'));colvec<-colgr(5)[as.numeric(cut(plotmeans$dectime, breaks=5))]
 plot(as.numeric(plotdat[1,]), col='white', ylim=c(0,1.2))
-for(i in 1:nrow(plotdat)){
-  lines(as.numeric(plotdat[i,]/max(plotdat[i,])), col=sample(1:20, 1))
+for(i in sample(which(plotmeans$ns=='s'), 10)){
+  lines(as.numeric(plotdat[i,]/max(plotdat[i,])), col=colvec[i])
 
 }
 
-#next up (probably prior to plotting): 
-#fixing duplicates
 
-
-#Flaggging for noise
 
