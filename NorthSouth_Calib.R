@@ -41,7 +41,7 @@ viewhr(sens=sens, hr=i)
 }
 
 
-ctimes<-read.csv('Calib_times.csv')
+ctimes<-read.csv('Calib_times.csv');ctimes<-ctimes[ctimes$type=="open",]
 
 combine<-function(dat, ts, split, doy=unique(ts$DOY)){
   
@@ -105,6 +105,22 @@ plot(data=bigdf, PPF2_Avg~dectime, subset=which((bigdf$H.y==i& bigdf$M.y<30)|(bi
 }
 
 datdf<-meandf[,5:9]
+
+meandf.hr<-round(meandf$dectime)
+datdf<-meandf[,5:9]
+par(mfrow=c(4,2), mar=c(4,4,4,1))
+for(i in which(ctimes$orientation=='S')){
+  #choosing the max
+  #plot(unlist(datdf[i,])/unlist(max(datdf[i,], na.rm=TRUE)), main=meandf.hr[i], type='l', ylim=c(0.90,1))
+  #lines(unlist(datdf[i+1,])/unlist(max(datdf[i+1,], na.rm=TRUE)), col='red')
+  #Forcing max light to be S6
+  plot((unlist(datdf[i,])/unlist(datdf[i,5]))~c(2:6), main=paste(meandf.hr[i], ":00", sep=''), type='l', ylim=c(0.90,1.1), ylab="output relative to TOC sensor", xlab='sensor number (by increasing mounting height)')
+  lines((unlist(datdf[i+1,])/unlist(datdf[i+1,5]))~c(2:6), col='red')
+  legend(2,1.15, legend=c("Northward orientation", "Southward orientation"), col=c('red', 'black'), bty='n', cex=0.8, lwd=2, y.intersp = 0.1)
+  #text(4,0.91, "Sensor output in full sun relative to top-of-canpy sensor")
+  }
+  
+
 
 mults<-1/(datdf/datdf$PPF_above_Avg)
 
