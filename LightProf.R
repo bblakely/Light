@@ -160,13 +160,17 @@ plotmeans$ns[plotmeans.rowf %% 2 == 0]<-'s'
 #will have options to filter on noise, length of record
 
 plotdat<-plotmeans[,10:15]
-
+par(mfrow=c(1,1), mar=c(4,4,1,1))
+heights<-c(7,22,36,55,70,88)
 colgr<-colorRampPalette(c('cyan', 'antiquewhite', 'orange'));colvec<-colgr(5)[as.numeric(cut(plotmeans$dectime, breaks=5))]
-plot(as.numeric(plotdat[1,]), col='white', ylim=c(0,1.2))
+plot((as.numeric(plotdat[1,])*100)~heights, col='white', xlim=c(0,90), ylim=c(-5,120), xlab="Measurement height (in)", ylab="% total sunlight (unitless)")
 for(i in sample(which(plotmeans$ns=='s'), 10)){
-  lines(as.numeric(plotdat[i,]/max(plotdat[i,])), col=colvec[i])
+  lines((as.numeric(plotdat[i,]/max(plotdat[i,]))*100)~heights, col=colvec[i], lwd=2)
 
 }
+text(64,-4,"Light profile measurements (random sample of 10 plots)", cex=0.9, font=2)
+legend(0,120, legend=c("morning", "afternoon"), col=c('cyan', 'orange'), lwd=2, cex=0.8, bty='n')
 
-
+#For plotting raw data on a click
+#plot(as.numeric(plotdat[sample(1:1050, 1),]), col=sample(1:8, 1), type='l')
 
