@@ -1,8 +1,17 @@
+#Light profile plot splitter:
+
+#This script reads in data from BB light cart and splits by plot
+#Final product is a light profile for each plot, including border plots
+
+#Many functions are created here that are used elsewhere
+#As of 11/11, I'm considering creating another script that just establishes the functions, then calling them all here.
+ 
 source('ImportCS.R') #TOA5 importer
 
+lp.raw<-importCSdata('CR1000XSeries_1_Quantum.dat') #Raw data
 
 
-lp.raw<-importCSdata('CR1000XSeries_1_Quantum.dat')
+#Main processing; read, split, average ####
 
 #Break down timestamp
 breaktime<-function(timestamp){
@@ -17,7 +26,6 @@ return(ts)
 lp.ts<-breaktime(lp.raw$TIMESTAMP)
 
 #Read in splits
-
 splitzip<-function(path){
 list<-list.files(path)
 splits<-data.frame()
@@ -35,7 +43,6 @@ return(splits)
 splits<-splitzip('LP_07_31')
 
 #Merge, clip
-
 combine<-function(dat, ts, split, doy=unique(ts$DOY)){
 
 bigdat.all<-cbind(ts, dat)
@@ -55,10 +62,9 @@ plot.cl<-plot.combine[both.str:both.end,]
 return(plot.cl)
 
 }
-
 plot.cl<-combine(dat=lp.raw, ts=lp.ts, split=splits, doy=212)
 
-
+#Split plots - most of the work is done by this function
 plotsplit=function(dat, numcol=c(1:3,5:8,11:18), out='mean', noise.tol=200){
   
 uniquerows<-unique(dat$row)[!is.na(unique(dat$row))]
@@ -148,9 +154,11 @@ for (o in 1:length(uniquerows)){
 if(out=='mean'){return(meandf)}else{return(bigdf)}
 
 }
-
 plotmeans<-plotsplit(plot.cl); #plotfull<-plotsplit(plot.cl, out='all')
 
+#####
+
+#Additional QC####
 #North/south column
 plotmeans$ns<-'n';
 plotmeans.rowf<-(plotmeans$row-1)/4
@@ -158,7 +166,9 @@ plotmeans$ns[plotmeans.rowf %% 2 == 0]<-'s'
 
 #quality filter
 #will have options to filter on noise, length of record
+#####
 
+#Basic plot to check out a sample of profiles ####
 plotdat<-plotmeans[,10:15]
 par(mfrow=c(1,1), mar=c(4,4,1,1))
 heights<-c(7,22,36,55,70,88)
@@ -173,4 +183,6 @@ legend(0,120, legend=c("morning", "afternoon"), col=c('cyan', 'orange'), lwd=2, 
 
 #For plotting raw data on a click
 #plot(as.numeric(plotdat[sample(1:1050, 1),]), col=sample(1:8, 1), type='l')
+#####
+
 
