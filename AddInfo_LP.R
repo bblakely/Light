@@ -21,7 +21,7 @@ count.raw<-read.csv('StandCount_2019.csv')
 heights.raw <- read.csv('LidarHeight_2019.csv', skip=2, stringsAsFactors = FALSE)
 lai.raw<-read.csv('LidarLAI_2019.csv', skip=2, stringsAsFactors = FALSE)
 
-#Subset heights, LAI to date closest to LP measurement date
+#Unpack McGrath style dates and subset heights, LAI to date closest to LP measurement date
 subdate<-function(dat, doy, year=2019, datecol='date'){ #Function may not work with different date formats!
   dat.ts<-as.POSIXct(dat[,which(colnames(dat)==datecol)])
   dat$YEAR<-as.numeric(format(dat.ts, format= '%Y'))
@@ -30,6 +30,7 @@ subdate<-function(dat, doy, year=2019, datecol='date'){ #Function may not work w
     
   return(rel)
 }
+
 heights.lp<-subdate(heights.raw, doy=211) #doy argument is the date in the height or lai datasets closest to the date light was measured
 lai.lp<-subdate(lai.raw, doy=211)
 
@@ -78,46 +79,43 @@ checkind<-str_detect(dat.lp$set_id, "CHK")
 dat.check<-dat.lp[str_detect(dat.lp$set_id, "CHK"),]
 #####
 
+
+
+#Reassign top of canopy values
+
+if(mod.toc=="TRUE"){
+  
+  rowtops<-aggregate(dat.lp$PPF_above_Avg, by=list(dat.lp$row), FUN=function(x) quantile(x, 0.99))
+  
+  col<-rep(c('red', 'blue'), nrow(rowtops)/2)
+  xax<-aggregate(dat.lp$dectime, by=list(dat.lp$row), FUN='mean')$x
+  
+  #plot(rowtops$x~xax, col=col)
+  
+  rowtops<-aggregate(dat.lp$PPF5_Avg, by=list(dat.lp$row), FUN=function(x) quantile(x, 0.99))
+  #points(rowtops$x~xax, col=col, pch='*')
+
+  modtop<-smooth.spline(x=xax, y=rowtops$x)
+  newtops<-predict(modtop,x=dat.lp$dectime);#lines(newtops)
+  
+  dat.lp.orig<-dat.lp
+  dat.lp$PPF_above_Avg<-newtops$y
+}
+
+
+#Acknowledge flood zone
+
+floodlist<-read.csv("FloodPlots_2019.csv")
+dat.lp$order<-c(1:nrow(dat.lp))
+dat.flood<-data.frame(merge(x=dat.lp, y=floodlist, by.x=c('row', 'range'), by.y=c('RowStart', 'Range'), all.x=TRUE, sort=FALSE))
+dat.flood$Edge.<-as.character(dat.flood$Edge.); dat.flood$Edge.[dat.flood$Edge.=="y"|dat.flood$Edge.=='n']<-1
+dat.flood<-dat.flood[order(dat.flood$order),] #reorder to match dat.re and have metadata at the front where I can see it
+dat.flood$Edge.[is.na(dat.flood$Edge.)]<-0
+
+
+
+
 #CLEANUP
-rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light','plot.cl','splits','heights.lp','lai.lp', 'light.full') #intermediate steps in processing
-rm('count.raw', 'info.raw', 'heights.raw','lai.raw') #Raw ancillary
+rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light','plot.cl','splits','heights.lp','lai.lp', 'light.full', 'timestamp.col', 'split.dir', 'doy.of.interest', 'modtop','newtops', 'rowtops') #intermediate steps in processing
+rm('count.raw', 'info.raw', 'heights.raw','lai.raw', 'floodlist') #Raw ancillary
 
-
-####
-# 
-# 
-# chk<-dat.check$PPF1_Avg/dat.check$PPF_above_Avg;exp<-dat$PPF1_Avg/dat.check$PPF_above_Avg
-# 
-# lp.cat<-as.character(dat.check$set_id)
-# par(mfrow=c(1,2))
-# for(i in 1:length(unique(lp.cat))){
-#   
-#   nums<-chk[which(lp.cat==unique(lp.cat)[i])]
-#   ran<-exp[sample(1:length(exp),16)]
-#   
-#   hist(nums, main=paste(unique(lp.cat[i])), ylim=c(0,12),xlim=c(0,1),breaks=seq(from=min(nums), to=max(nums), length.out = 10))
-#   
-#   hist(ran, main='random',ylim=c(0,12),xlim=c(0,1), breaks=seq(from=min(ran), to=max(ran), length.out = 10))
-#   
-#   #print(paste(refl.cat[i],(t.test(nums, ran)[3])))
-#   
-# }
-# 
-# 
-# par(mfrow=c(1,2))
-# 
-# lw.exp<-nir.700.1000[explots];lw.chk<-nir.700.1000[checkind]
-# 
-# refl.cat<-as.character(dat.check$set_id)
-# 
-# for(i in 1:length(unique(refl.cat))){
-#   
-#   nums<-lw.chk[which(refl.cat==unique(refl.cat)[i])]
-#   ran<-lw.exp[sample(1:length(lw.exp),16)]
-#   
-#   hist(nums, main=paste("LW ",unique(refl.cat[i])), xlim=c(0.2, 0.7), ylim=c(0,10), breaks=seq(from=min(nums), to=max(nums), length.out=10))
-#   hist(ran, main='random', xlim=c(0.2, 0.7), ylim=c(0,10), breaks=seq(from=min(ran), to=max(ran), length.out=10))
-#   
-#   print(paste(refl.cat[i],(t.test(nums, ran)[3])))
-# }
-# 
