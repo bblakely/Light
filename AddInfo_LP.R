@@ -20,6 +20,7 @@ info.raw<-read.csv('PlotInfo_2019.csv')
 count.raw<-read.csv('StandCount_2019.csv')
 heights.raw <- read.csv('LidarHeight_2019.csv', skip=2, stringsAsFactors = FALSE)
 lai.raw<-read.csv('LidarLAI_2019.csv', skip=2, stringsAsFactors = FALSE)
+yield.raw<-read.csv('Yield_2019.csv')
 
 #Unpack McGrath style dates and subset heights, LAI to date closest to LP measurement date
 subdate<-function(dat, doy, year=2019, datecol='date'){ #Function may not work with different date formats!
@@ -33,6 +34,7 @@ subdate<-function(dat, doy, year=2019, datecol='date'){ #Function may not work w
 
 heights.lp<-subdate(heights.raw, doy=211) #doy argument is the date in the height or lai datasets closest to the date light was measured
 lai.lp<-subdate(lai.raw, doy=211)
+
 
 #####
 
@@ -50,17 +52,18 @@ light1<-merge(light, info.raw, by.x=c('row', 'range'),by.y=c('first_row','range'
 light2<-merge(light1, count.raw,by.x=c('row', 'range'),by.y=c('first_row','range'), sort=FALSE) #Add stand counts
 light3<-merge(light2, heights.lp, by.x=c('row', 'range'), by.y=c('first_row', 'range'),all.x=TRUE, sort=FALSE) #Add heights
 light4<-merge(light3, lai.lp, by.x=c('row', 'range'), by.y=c('first_row', 'range'),all.x=TRUE, sort=FALSE) #Add LAI
+light5<-merge(light4, yield.raw, by.x=c('row', 'range'), by.y=c('Row', 'Range'),all.x=TRUE, sort=FALSE) #Add yield
 
 #####
 
 #Clear out junk columns; creates 'dat.lp' ####
 
-light.full<-light4
+light.full<-light5
 colnames(light.full)
 
 var.want<-c("row", "range", "dectime", "DOY.x", "H", "M","S",
             "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
-            "noisy","ns","raw.order","exp.order","plot_id","genotype_name","block_id", "set_id","row_density","height","lai")
+            "noisy","ns","raw.order","exp.order","plot_id","genotype_name","block_id", "set_id","row_density","height","lai", "Sum_lbs")
   
   #Full variable list
   #c("row", "range", "dectime", "DOY.x", "H", "M","S","BattV_Min",
@@ -116,6 +119,6 @@ dat.flood$Edge.[is.na(dat.flood$Edge.)]<-0
 
 
 #CLEANUP
-rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light','plot.cl','splits','heights.lp','lai.lp', 'light.full', 'timestamp.col', 'split.dir', 'doy.of.interest', 'modtop','newtops', 'rowtops') #intermediate steps in processing
-rm('count.raw', 'info.raw', 'heights.raw','lai.raw', 'floodlist') #Raw ancillary
+rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light5','light','plot.cl','splits','heights.lp','lai.lp', 'light.full', 'timestamp.col', 'split.dir', 'doy.of.interest', 'modtop','newtops', 'rowtops') #intermediate steps in processing
+rm('count.raw', 'info.raw', 'heights.raw','lai.raw', 'floodlist', 'yield.raw') #Raw ancillary
 
