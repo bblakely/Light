@@ -2,6 +2,7 @@ source('ImportCS.R') #TOA5 importer
 
 lp.calib.raw<-importCSdata('CR1000XSeries_1_Quantum.dat')
 
+plotstuff<-TRUE
 #Break down timestamp
 breaktime<-function(timestamp){
   H<-as.numeric(format(timestamp, "%H"))
@@ -17,7 +18,7 @@ lp.calib.ts<-breaktime(lp.calib.raw$TIMESTAMP)
 
 lp.calib.clip<-lp.calib.raw[lp.calib.ts$DOY==226,]; lp.calib.ts.clip<-lp.calib.ts[lp.calib.ts$DOY==226,]
 
-plot(lp.calib.clip$PPF2_Avg~lp.calib.ts.clip$dectime)
+#plot(lp.calib.clip$PPF2_Avg~lp.calib.ts.clip$dectime)
 
 viewhr<-function(dat=lp.calib.clip, ts=lp.calib.ts.clip, hr, sens="PPF2_Avg"){
   
@@ -26,7 +27,7 @@ viewhr<-function(dat=lp.calib.clip, ts=lp.calib.ts.clip, hr, sens="PPF2_Avg"){
   lp.h.ts<-ts[index,]
   senscol<-which(colnames(lp.h)==sens)
   
-  plot(lp.h[,senscol]~lp.h.ts$dectime, ylim=c(700,2200), main=paste(sens," " ,hr,":00", sep=''), ylab='', xlab='')
+  #plot(lp.h[,senscol]~lp.h.ts$dectime, ylim=c(700,2200), main=paste(sens," " ,hr,":00", sep=''), ylab='', xlab='')
   
 }
 
@@ -87,6 +88,7 @@ for(i in init){
 
 #experiment with plots to pull out stable data
 
+if(plotstuff== TRUE){
 par(mfrow=c(2,2))
 limvec<-c(1100,1200,1600,1750,1850,1800,1550,1200)
 loop<-0
@@ -104,10 +106,13 @@ plot(data=bigdf, PPF2_Avg~dectime, subset=which((bigdf$H.y==i& bigdf$M.y<30)|(bi
   
 }
 
+}
+
 datdf<-meandf[,5:9]
 
 meandf.hr<-round(meandf$dectime)
 datdf<-meandf[,5:9]
+if(plotstuff=='TRUE'){
 par(mfrow=c(4,2), mar=c(4,4,4,1))
 for(i in which(ctimes$orientation=='S')){
   #choosing the max
@@ -119,8 +124,14 @@ for(i in which(ctimes$orientation=='S')){
   legend(2,1.15, legend=c("Northward orientation", "Southward orientation"), col=c('red', 'black'), bty='n', cex=0.8, lwd=2, y.intersp = 0.1)
   #text(4,0.91, "Sensor output in full sun relative to top-of-canpy sensor")
   }
-  
+}
+
+mults<-1/(datdf/datdf$PPF_above_Avg); ns<-rep(c("s", "n"), 8)
+mult.df<-cbind(mults, meandf.hr, ns); colnames(mult.df)[6]<-'hr'
+
+mults.s<-mult.df[mult.df$ns=='s',]; mults.n<-mult.df[mult.df$ns=='n',]
+
+rm(list=setdiff(ls(), c('mult.df','mults.s', 'mults.n')))
 
 
-mults<-1/(datdf/datdf$PPF_above_Avg)
 

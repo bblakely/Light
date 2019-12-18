@@ -378,7 +378,7 @@ lines(fake$ex.height~predict(fit, newdata=fake), lwd=2)
 #Bulk processing of scaled curves
 
 
-dat.scale<-data.frame(t(apply(dat.rel, 1, function(x) rev(x)))) #LAI starting from the top
+dat.scale<-data.frame(t(apply(dat.rel, 1, function(x) rev(x)))) #light starting from the top
 height.scale<-data.frame(t(apply(height.rel, 1, function(x) rev(as.numeric(max(x, na.rm=TRUE)-x))))) #height starting from the top
 
 #set up axis for reuse
@@ -386,13 +386,13 @@ height.scale<-data.frame(t(apply(height.rel, 1, function(x) rev(as.numeric(max(x
 plot(c(1:10), ylim=c(0,1), xlim=c(0,1), col='white', xaxt='n')
 axis(side=1, at=seq(0, 1, by=0.2), labels=rev(seq(0, 1, by=0.2)))
 
-doesitfit<-rep('n', 960);propsat<-rep(1, 960)
+doesitfit<-rep('n', 960);propsat<-rep(1, 960);coefs=rep(999, 960)
 fake<-data.frame(seq(from=0, to=1, by=0.05));colnames(fake)<-'height.norm' #For smooth plotting
 
 sat.sun<-0.46 #Fraction full sun considered saturating
 
 for(i in 1:960){
-  plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])))
+  plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light')
   
   curve<-as.numeric(dat.scale[i,]);height.norm<-as.numeric(height.scale[i,])
   
@@ -402,7 +402,7 @@ for(i in 1:960){
     if(exists('fit3.b')){
       lines(fake$height.norm, predict(fit3.b, newdata=fake), col='red')
       AICexp<-round(AIC(fit3.b), 3); #text(0.2, 1000, paste("EXP= ", AICexp), cex=0.8)
-      doesitfit[i]<-'E'
+      doesitfit[i]<-'E';coefs[i]<-summary(fit3.b)$coefficients[1]; text(0.6, 0.9, paste("k =",round(coefs[i], 2)))
       propsat[i]<-approx(x=predict(fit3.b, newdata=fake),y=fake$height.norm,xout=sat.sun)$y
       approx(x, y=x,xout=0.97)
       
@@ -439,8 +439,51 @@ for(i in 1:960){
   
 }
    
-length(which(doesitfit=='E'))/length(doesitfit)
-length(which(doesitfit=='L'))/length(doesitfit)
+length(which(doesitfit=='E'))/length(doesitfit)->prope
+length(which(doesitfit=='L'))/length(doesitfit)->propl
 
-hist(propsat)#histogram of proportion canopy in saturating sun
+
+par(mfrow=c(1,2))
+plot(density(propsat, na.rm=TRUE), main='% saturated', xlab="Proportion plant height in saturating sun",
+     lwd=2, font.axis=2, font.lab=2)
+plot(density(coefs[doesitfit=="E"]), main='coefficients', xlim=c(-30,0), xlab="Value of exponential decay (e^kx) coefficient k",
+     lwd=2, font.axis=2, font.lab=2)
+
+#pie(c(prope, propl), labels=c('exponential', 'logistic'), col=c('indianred', 'lightblue4'))
+
+
+summary(lm(propsat~dat.lp$lai+dat.lp$height+dat.lp$PPF_above_Avg))
+
+leaf.dens.even<-dat.lp$lai/dat.lp$height 
+#Why doesn't this match propsat better?
+#stat sig but not a clear pattern. Angle more important than density
+
+
+#Flood zone?
+floodlist<-read.csv("FloodPlots_2019.csv")
+dat.lp$order<-c(1:nrow(dat.lp))
+dat.flood<-data.frame(merge(x=dat.lp, y=floodlist, by.x=c('row', 'range'), by.y=c('RowStart', 'Range'), all.x=TRUE, sort=FALSE))
+dat.flood$Edge.<-as.character(dat.flood$Edge.); dat.flood$Edge.[dat.flood$Edge.=="y"|dat.flood$Edge.=='n']<-1
+dat.flood<-dat.flood[order(dat.flood$order),] #reorder to match dat.re and have metadata at the front where I can see it
+dat.flood$Edge.[is.na(dat.flood$Edge.)]<-0
+
+
+#Checkline stuff
+checklist<-c("CHK-A", "CHK-B", "CHK-C","CHK-D","CHK-E")
+for(m in 1:length(checklist)){
+  
+plot(as.numeric(dat.scale[1,])~(as.numeric(height.scale[1,])), xlab='height', ylab='light', col='white', main=checklist[m])
+for(i in which(dat.flood$set_id==checklist[m]& dat.flood$Edge.!= 1)){
+  lines(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light')
+}
+  
+plot(as.numeric(dat.scale[1,])~(as.numeric(height.scale[1,])), xlab='height', ylab='light', col='white')
+
+for(i in sample(c(1:960), length(which(dat.flood$set_id==checklist[m]&dat.flood$Edge.!=1)))){
+  lines(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light')
+}
+
+}
+
+#MaybeMaybeMaybe
 
