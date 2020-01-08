@@ -1,4 +1,4 @@
-RowStart,RowEnd,Range,Edge?
+RowStart,RowEnd,Range,Edge
 41,45,1,y
 45,49,1,y
 49,53,1,n
