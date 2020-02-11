@@ -15,8 +15,9 @@ ggplot(dat.lp) +
 ggplot(dat.lp) +
   aes(x = row, y = range, fill = vis.400.700) +
   geom_tile(size = 1L) +
-  scale_fill_gradientn(colours=c('gray20', '#6C879A', '#B0C2D0', 'aliceblue', 'white')) +
-  theme_minimal()
+  scale_fill_gradientn(colours=c('gray20', '#6C879A', '#B0C2D0', 'aliceblue', 'white'), na.value='mistyrose') +
+  labs(fill="Reflectance \n(300 - 700nm)", x= "Row", y="Range")+
+  theme_minimal(base_size = 20)
 
 #B0C2D0 original
 #  scale_fill_gradientn(colours=c('black', '#4D7B9A', 'white')) +
