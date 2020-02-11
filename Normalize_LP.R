@@ -157,4 +157,4 @@ colnames(dat.scale)<-c("L6", "L5", "L4", "L3", "L2", "L1")
 dat.print<-cbind(dat.lp[c(1:7)], dat.scale, dat.lp[14:31])
 colnames(dat.print)[ncol(dat.print)]<-"Flood"
 
-write.csv(dat.print, "D:/R/TERRA_09.csv", row.names=FALSE)
+#write.csv(dat.print, "D:/R/TERRA_09.csv", row.names=FALSE)

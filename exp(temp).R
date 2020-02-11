@@ -13,6 +13,18 @@ ggplot(dat.lp) +
 
 
 ggplot(dat.lp) +
+  aes(x = row, y = range, fill = vis.400.700) +
+  geom_tile(size = 1L) +
+  scale_fill_gradientn(colours=c('gray20', '#6C879A', '#B0C2D0', 'aliceblue', 'white')) +
+  theme_minimal()
+
+#B0C2D0 original
+#  scale_fill_gradientn(colours=c('black', '#4D7B9A', 'white')) +
+#4D7B9A bluer and darker
+#6C879A darker but not much bluer
+
+
+ggplot(dat.lp) +
   aes(x = lai, y = Sum_lbs, colour = height) +
   geom_point(size = 1.58) +
   scale_color_viridis_c(option = "viridis") +
