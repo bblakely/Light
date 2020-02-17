@@ -86,6 +86,8 @@ ggplot(dat.lp) +
 #Run normalizeLP before this
 library(ggplot2)
 
+#1000 x 475 works alright for output
+
 #Phenome tile plot for albedo####
 ggplot(dat.lp) +
   aes(x = row, y = range, fill = vis.400.700) +
@@ -126,7 +128,7 @@ plotdat.ph<-cbind(dat.lp, pcts)
 ggplot(plotdat.ph) +
   aes(x = row, y = range, fill = pcts) +
   geom_tile(size = 1L) +
-  scale_fill_gradientn(colours=c("#3A4919","#7B883F","Lightgoldenrod1","white"), na.value='mistyrose') +
+  scale_fill_gradientn(colours=c("#3A4919","#7B883F","Lightgoldenrod1","white"), na.value='mistyrose', breaks=c(0.1,0.5,0.75,1)) +
   labs(fill="Proportion \nfull sunlight at \n50% canopy depth", x= "Row", y="Range")+
   theme_minimal(base_size=20)
 #####
