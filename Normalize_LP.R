@@ -86,13 +86,18 @@ sat.sun<-0.46 #Fraction full sun considered saturating
 
 #Curvefitting
 
-plotsamp<-sample(1:960, 27)
-par(mfrow=c(3,3))
-for(i in 1:960){
+fiteq<-expression(e^~(k~'*'~height))
+
+plotsamp<-sample(1:960, 27); plotsamp<-c(211,226)
+#par(mfrow=c(3,3))
+for(i in 200:230){ #1:960 for all
   
   if(i%in%plotsamp){
-    plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light')
-  }
+    #plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light', main=i)
+    plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='Depth (scaled) ', ylab='Light (scaled)', pch=19,cex=1.5, xlim=c(0, 1) )
+    lines(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), lty=2, col="#3A4919",lwd=2)
+    #legend(0.75, 1,legend=c("observations",fiteq), lwd=c(NA,2), pch=c(19,NA), col=c( 'black','#7B883F'), bty='n', seg.len=1)
+    }
   
   curve<-as.numeric(dat.scale[i,]);height.norm<-as.numeric(height.scale[i,])
   
@@ -100,9 +105,9 @@ for(i in 1:960){
   tryCatch({  
     fit3.b<-nls(curve ~ exp(k*height.norm), start=c(k=-1)) #exponential, red
     if(exists('fit3.b')){
-      if(i%in%plotsamp){lines(fake$height.norm, predict(fit3.b, newdata=fake), col='red')}
+      if(i%in%plotsamp){lines(fake$height.norm, predict(fit3.b, newdata=fake), col='#7B883F', lwd=2)}
       AICexp<-round(AIC(fit3.b), 3); #text(0.2, 1000, paste("EXP= ", AICexp), cex=0.8)
-      doesitfit[i]<-'E';coefs[i]<-summary(fit3.b)$coefficients[1]; if(i%in%plotsamp){text(0.6, 0.9, paste("k =",round(coefs[i], 2)))}
+      doesitfit[i]<-'E';coefs[i]<-summary(fit3.b)$coefficients[1]; if(i%in%plotsamp){text(0.9, 0.95, paste("k =",round(coefs[i], 2)), cex=1.3)}
       propsat[i]<-approx(x=predict(fit3.b, newdata=fake),y=fake$height.norm,xout=sat.sun)$y
       approx(x, y=x,xout=0.97)
       
@@ -129,7 +134,7 @@ for(i in 1:960){
       doesitfit[i]<-'L'
       propsat[i]<-sat.log}
   }
-  if(i%in%plotsamp){text(0.05,0.2,doesitfit[i])}
+  #if(i%in%plotsamp){text(0.05,0.2,doesitfit[i])}
   
   
   

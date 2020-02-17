@@ -45,6 +45,22 @@ plot(dat.lp$height~dat.lp$Sum_lbs)
 summary(lm(Sum_lbs~row_density+height+lai+Edge+z+Score, data=dat.lp))
 
 
+
+
+
+kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs)
+colnames(kitsin)[c(21:25,28:29, 31:35)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness" )
+#Give this better names
+
+sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+VIS_Reflectance+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin))
+summary(sinkmodel)
+summ(sinkmodel)
+plot_summs(sinkmodel, scale=TRUE, colors = "#7B883F")
+
+
+
+
+
 summary(lm(Sum_lbs~+lai+Edge.+z+Score, data=dat.flood))
 
 dat.noflood<-dat.flood[dat.flood$Edge.=="0",]
@@ -57,10 +73,10 @@ summary(lm(Sum_lbs~z, data=dat.noflood))
 boxplot(Sum_lbs~set_id, data=dat.check)
 biom<-aov(Sum_lbs~set_id, data=dat.check)
 summary(biom)
-summary(lm(Sum_lbs~row_density+height+lai+Edge.+z+Score, data=dat.check))
+summary(lm(Sum_lbs~row_density+height+lai+Edge+z+Score, data=dat.check))
 
 library(lme4)
-summary(lmer(Sum_lbs~row_density+height+lai+Edge.+z+Score+(1|set_id), data=dat.check))
+summary(lmer(Sum_lbs~row_density+height+lai+Edge+z+Score+(1|set_id), data=dat.check))
 
 
 summary(lmer(Sum_lbs~z+lai+(1|set_id), data=dat.check))
@@ -128,3 +144,11 @@ ggplot(plotdat.ph) +
   scale_fill_gradientn(colours=c("#3A4919","#7B883F","Lightgoldenrod1","white")) +
   theme_minimal()
 
+
+
+plot(pcts~dat.lp$vis.400.700)
+
+plot(pcts~dat.lp$height)
+plot(dat.lp$vis.400.700~dat.lp$height)
+
+smoothScatter(pcts~dat.lp$Sum_lbs)
