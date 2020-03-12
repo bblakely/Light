@@ -58,6 +58,12 @@ explots<-which(plotmeans$row!=(-3) & plotmeans$row < 161 & plotmeans$range!=1 & 
 light<-plotmeans[explots,]
 light$exp.order<-c(1:nrow(light)) #Record thinned order before merges, which scramble df order if sort is not set to FALSE
 
+#Manually label border plot checklines
+bord.lp<-plotmeans[which(plotmeans$range==26 | plotmeans$range==1),]
+bord.lp.sort<-bord.lp[order(bord.lp$range, bord.lp$row),]
+set_id<-rep(c(1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1),2); set_id[set_id==1]<-"CHK-H";set_id[set_id==2]<-"CHK-I"
+
+bord.lp<-data.frame(cbind(bord.lp.sort,set_id ))
 #####
 
 ##Merge in stand counts, plot ID's, heights, LAI's, etc. ####
@@ -141,6 +147,10 @@ if(mod.toc=="TRUE"){
 library(stringr)
 checkind<-str_detect(dat.lp$set_id, "CHK")
 dat.check<-dat.lp[str_detect(dat.lp$set_id, "CHK"),]
+
+#This one includes border plots along ranges 1 and 26, which do not have ancillary data
+dat.check.bord<-merge(dat.check, bord.lp,all=TRUE) 
+
 #####
 
 
