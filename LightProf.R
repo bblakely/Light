@@ -13,7 +13,7 @@ lp.raw<-importCSdata('CR1000XSeries_1_Quantum.dat') #Raw data
 
 #User-defined arguments
 timestamp.col<-lp.raw$TIMESTAMP #Where is the timestamp in the full dataset?
-split.dir<-'LP_07_31'#What is the name of the directory where the manual splits are stored?
+split.dir<-'LP_timestamps/LP_07_31_2019'#What is the name of the directory where the manual splits are stored?
 doy.of.interest<-212 #Which day should be subset from the full dataset?
 vars.of.interest<-c( "dectime","row","range","DOY","H","M","S","BattV_Min","PanelT","PPF1_Avg","PPF2_Avg","PPF3_Avg","PPF4_Avg","PPF5_Avg","PPF_above_Avg")
 

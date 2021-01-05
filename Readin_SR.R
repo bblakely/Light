@@ -7,10 +7,10 @@ for(q in 1:4){
 ud<-sensors[q,1]
 lam<-sensors[q,2]
 
-if(ud=="downward"&lam=="short"){filename<-'SR_08_09/SR_08_09_data/SR_08_09_1153_relative.csv';nwave<-481}else
-  if(ud=="upward"&lam=="short"){filename<-'SR_08_09/SR_08_09_data/SR_08_09_1152_relative.csv';nwave<-481}else
-    if(ud=="downward"& lam=="long"){filename<-'SR_08_09/SR_08_09_data/SR_08_09_1025_relative.csv';nwave<-466}else
-      if(ud=="upward"& lam=="long"){filename<-'SR_08_09/SR_08_09_data/SR_08_09_1024_relative.csv';nwave<-466}else (print("Did not correctly specify sensor"))
+if(ud=="downward"&lam=="short"){filename<-'SR_08_09_2019/SR_08_09_data/SR_08_09_1153_relative.csv';nwave<-481}else
+  if(ud=="upward"&lam=="short"){filename<-'SR_08_09_2019/SR_08_09_data/SR_08_09_1152_relative.csv';nwave<-481}else
+    if(ud=="downward"& lam=="long"){filename<-'SR_08_09_2019/SR_08_09_data/SR_08_09_1025_relative.csv';nwave<-466}else
+      if(ud=="upward"& lam=="long"){filename<-'SR_08_09_2019/SR_08_09_data/SR_08_09_1024_relative.csv';nwave<-466}else (print("Did not correctly specify sensor"))
 
 print('##########################')
 print(paste("Processing", sensors[q,1],sensors[q,2]))
@@ -38,7 +38,7 @@ sr.num<-(t(sr.raw[2:ncol(sr.raw)]));colnames(sr.num)<-paste('b',sr.wave, sep="")
 
 ###Retrieve timestamps from plot splitting files####
 source('Rtimes.R')
-ts.split<-splitzip("SR_08_09/SR_08_09_timestamp")
+ts.split<-splitzip("SR_08_09_2019/SR_08_09_timestamp")
 ####
 
 ###Put everything together####

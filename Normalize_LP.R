@@ -90,7 +90,7 @@ fiteq<-expression(e^~(k~'*'~height))
 
 plotsamp<-sample(1:960, 27); plotsamp<-c(211,226)
 #par(mfrow=c(3,3))
-for(i in 200:230){ #1:960 for all
+for(i in 1:960){ #1:960 for all
   
   if(i%in%plotsamp){
     #plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light', main=i)
@@ -159,7 +159,8 @@ plot(density(coefs[doesitfit=="E"]), main='coefficients', xlim=c(-30,0), xlab="V
 
 
 colnames(dat.scale)<-c("L6", "L5", "L4", "L3", "L2", "L1")
-dat.print<-cbind(dat.lp[c(1:7)], dat.scale, dat.lp[14:31])
+dat.print<-cbind(dat.lp[c(1:8)], dat.scale, dat.lp[15:32])
 colnames(dat.print)[ncol(dat.print)]<-"Flood"
+
 
 #write.csv(dat.print, "D:/R/TERRA_09.csv", row.names=FALSE)

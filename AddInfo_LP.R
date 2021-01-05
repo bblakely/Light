@@ -21,7 +21,7 @@ info.raw<-read.csv('PlotInfo_2019.csv')
 count.raw<-read.csv('StandCount_2019.csv')
 heights.raw <- read.csv('LidarHeight_2019.csv', skip=2, stringsAsFactors = FALSE)
 lai.raw<-read.csv('LidarLAI_2019.csv', skip=2, stringsAsFactors = FALSE)
-yield.raw<-read.csv('Yield_2019.csv')
+yield.raw<-read.csv('2019_Yield_1.csv')#read.csv('Yield_2019_1.csv') #read.csv('Yield_2019.csv')
 alt.raw<-read.csv('GPS_2019.csv')
 lodge.raw<-read.csv("Lodging_2019.csv")
 setwd(dir.main)
@@ -67,7 +67,10 @@ light1<-merge(light, info.raw, by.x=c('row', 'range'),by.y=c('first_row','range'
 light2<-merge(light1, count.raw,by.x=c('row', 'range'),by.y=c('first_row','range'), sort=FALSE) #Add stand counts
 light3<-merge(light2, heights.lp, by.x=c('row', 'range'), by.y=c('first_row', 'range'),all.x=TRUE, sort=FALSE) #Add heights
 light4<-merge(light3, lai.lp, by.x=c('row', 'range'), by.y=c('first_row', 'range'),all.x=TRUE, sort=FALSE) #Add LAI
-light5<-merge(light4, yield.raw, by.x=c('row', 'range'), by.y=c('Row', 'Range'),all.x=TRUE, sort=FALSE) #Add yield
+
+light5<-merge(light4, yield.raw, by.x=c('plot_id'), by.y=c('plot_id'),all.x=TRUE, sort=FALSE) #Add yield
+light5<-light5[order(light5$exp.order),]
+
 light6<-merge(light5, lodge.raw, by.x=c('row', 'range'), by.y=c('Row', 'Range'),all.x=TRUE, sort=FALSE) #Add lodging score
 light7<-merge(light6, alt.raw, by.x=c('row', 'range'), by.y=c('row', 'range'),all.x=TRUE, sort=FALSE) #Add GPS
 light8<-merge(light7, sr.raw, by.x=c('row', 'range'), by.y=c('row', 'range'),all.x=TRUE, sort=FALSE) #Add albedo
@@ -84,7 +87,7 @@ colnames(light.full)
 var.want<-c("row", "range", "dectime", "DOY.x", "H", "M","S",
             "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
             "noisy","ns","raw.order","exp.order","plot_id","genotype_name","block_id", "set_id",
-            "row_density","height","lai", "Sum_lbs","x", "y", "z","Score", "vis.400.700", "nir.700.1000", "Edge")
+            "row_density","height","lai", "above_ground_dry_yield","plot_id.x","x", "y", "z","Score", "vis.400.700", "nir.700.1000", "Edge")
   
   #Full variable list
   #c("row", "range", "dectime", "DOY.x", "H", "M","S","BattV_Min",
@@ -94,7 +97,7 @@ var.want<-c("row", "range", "dectime", "DOY.x", "H", "M","S",
 
 cols<-which(colnames(light.full)%in%var.want); colnames(light.full)[cols] #Columns of data you want; excludes duplicate metadata, dates, etc.
 dat.lp<-light.full[,cols]
-
+dat.look<-dat.lp[,c(1:3, 15:32)]
 #####
 # 
 # #Grab checkline plots; creates dat.check #####
