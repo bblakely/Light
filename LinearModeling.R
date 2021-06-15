@@ -26,7 +26,39 @@ ggplot(dat.lp) +
 ##Linear modeling####
 par(mfrow=c(1,1))
 
-plot(dat.lp$height~dat.lp$above_ground_dry_yield)
+dat.lp.mod<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei)
+
+library(corrplot)
+
+#Pairwise comparisons #####
+# plot(dat.lp.mod$height~dat.lp.mod$above_ground_dry_yield)
+# height.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~height)
+# #plot(height.pw)
+# 
+# plot(dat.lp.mod$lai~dat.lp.mod$above_ground_dry_yield)
+# lai.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~lai); summary(lai.pw)
+# #plot(lai.pw)
+# 
+# plot(dat.lp.mod$ei~dat.lp.mod$above_ground_dry_yield)
+# ei.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~ei); summary(ei.pw)
+# plot(ei.pw)
+# 
+# plot(dat.lp.mod$z~dat.lp.mod$above_ground_dry_yield)
+# z.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~z); summary(z.pw)
+# plot(z.pw)
+# 
+# plot(dat.lp.mod$Score~dat.lp.mod$above_ground_dry_yield)
+# Score.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~Score); summary(Score.pw)
+# plot(Score.pw)
+# 
+# plot(dat.lp.mod$vis.400.700~dat.lp.mod$above_ground_dry_yield)
+# vis.400.700.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~vis.400.700); summary(vis.400.700.pw)
+# plot(vis.400.700.pw)
+# 
+# plot(dat.lp.mod$nir.700.1000~dat.lp.mod$above_ground_dry_yield)
+# nir.700.1000.pw<-lm(data=dat.lp.mod,above_ground_dry_yield~nir.700.1000); summary(nir.700.1000.pw)
+# plot(nir.700.1000.pw)
+#####
 
 #kitchen sink dat b
 #need random effect on genotype?
@@ -59,55 +91,105 @@ ei<-1-(combo.lp$PPF1_Avg/combo.lp$PPF_above_Avg)
 ei[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]<-(1-(combo.lp$PPF1_Avg/combo.lp$PPF5_Avg))[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]
 
 
-kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei)
-colnames(kitsin)[c(22:26,29:30, 31:37)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance","NIR_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness", "Interception_efficiency" )
+kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei, dat.lp$nir.700.1000/dat.lp$vis.400.700)
+colnames(kitsin)[c(22:26,29:30, 31:38)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance","NIR_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness", "Interception_efficiency", "NIR_VIS_ratio")
 #Give this better names
 library(jtools, broom)
-sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Interception_efficiency+Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin)) # [currently problems with those columns]
+sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Fit_Type+Curvefit_Steepness, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
 summary(sinkmodel)
 summ(sinkmodel)
-plot_summs(sinkmodel, scale=TRUE, colors = "#7B883F")
+plot_summs(sinkmodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
+
+
+submodel<-(lm(Yield~Height+LAI+Row_Stem_Density+Flood_Affected+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Interception_efficiency+Row_Stem_Density, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+plot_summs(submodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
+summary(submodel)
+summ(submodel)
+
+#step(kitsin.std)
+step(sinkmodel)
+# selectmodel<-lm(formula = Yield ~ Height + LAI + Lodging_Score + Elevation + 
+#                   VIS_Reflectance + NIR_Reflectance + Interception_efficiency + 
+#                   Light_at_50, data = kitsin)
+
+
+selectmodel<-lm(formula = Yield ~ Height + LAI + Lodging_Score + Elevation + 
+                                   NIR_VIS_ratio + Interception_efficiency,
+                                   data = kitsin)
+                  
+summary(selectmodel)
+summ(selectmodel)
+plot_summs(selectmodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
+
+#Structure explains some 31%, environment
 
 library(fastDummies)
-kitsin.want<-kitsin[,c(22:26,29:30, 31:37)]; #:33, 35:
-kitsin.dum<-dummy_cols(kitsin.want)[14:17]
+kitsin.want<-kitsin[,c(22:26,29:30, 31:38)]; #:33, 35:
+kitsin.dum<-dummy_cols(kitsin.want)[15:18]
 kitsin.nums<-kitsin.want[,c(1:8, 10, 12:14)]
 kitsin.std<-cbind(scale(kitsin.nums, center=TRUE), kitsin.dum)
 
-sinkmodel2<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected_1+Flood_Affected_0+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Light_at_50+Fit_Type_E+Fit_Type_L+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin.std)) #+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness [currently problems with those columns]
-summary(sinkmodel2)
-summ(sinkmodel2)
+par(mar=c(4,4,4,1))
+
+library(dplyr)
+library(ggplot2)
+
+kitsin.nums %>%
+ filter(LAI >= 1L & LAI <= 8L) %>%
+ ggplot() +
+ aes(x = Light_at_50, y = Yield, colour = LAI) +
+ geom_point(size = 2L) +
+ scale_color_distiller(palette = "RdYlBu") +
+  geom_smooth(method=lm, colour='black')+
+ theme_minimal()
+# sinkmodel2<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected_1+Flood_Affected_0+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Light_at_50+Fit_Type_E+Fit_Type_L+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin.std)) #+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness [currently problems with those columns]
+# summary(sinkmodel2)
+# summ(sinkmodel2)
+
+ggplot(kitsin) +
+  aes(x = Flood_Affected, y = Height) +
+  geom_boxplot(fill = "#ffffff") +
+  theme_minimal()
 
 
-submodel<-function(lai.min, lai.max, height.min, height.max, variable) {
-#kitsin.subset<-kitsin.want[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max), ]
-#kitsin.subset.num<-(kitsin.subset[,c(1:8, 10, 12:13)]);kitsin.subset.dum<-dummy_cols(kitsin.subset)[12:16]
-#kitsin.subset.std<-cbind(scale(kitsin.subset.num, center=TRUE), kitsin.subset.dum)
+# submodel<-function(lai.min, lai.max, height.min, height.max, variable) { ####
+# #kitsin.subset<-kitsin.want[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max), ]
+# #kitsin.subset.num<-(kitsin.subset[,c(1:8, 10, 12:13)]);kitsin.subset.dum<-dummy_cols(kitsin.subset)[12:16]
+# #kitsin.subset.std<-cbind(scale(kitsin.subset.num, center=TRUE), kitsin.subset.dum)
+# 
+# kitsin.subset.std<-kitsin.std[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max),]
+#   
+# submodel2<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected_0+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Light_at_50+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin.subset.std)) #+Fit_Type_E+Fit_Type_L+
+# 
+# ind<-which(names(submodel2$coefficients)==variable)
+# print(lai.min); print(nrow(kitsin.subset.std));print(submodel2$coefficients[ind]); 
+# pch<-1
+# if(!is.na(summary(submodel2)$coef[,4][ind])){if(summary(submodel2)$coef[,4][ind]<0.05){pch<-19}}else(pch=3)
+# 
+# points(submodel2$coefficients[ind]~lai.min, pch=pch)
+# summary(submodel2)
+# 
+# }
 
-kitsin.subset.std<-kitsin.std[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max),]
-  
-submodel2<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected_0+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Light_at_50+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin.subset.std)) #+Fit_Type_E+Fit_Type_L+
-
-ind<-which(names(submodel2$coefficients)==variable)
-print(lai.min); print(nrow(kitsin.subset.std));print(submodel2$coefficients[ind]); 
-pch<-1
-if(!is.na(summary(submodel2)$coef[,4][ind])){if(summary(submodel2)$coef[,4][ind]<0.05){pch<-19}}else(pch=3)
-
-points(submodel2$coefficients[ind]~lai.min, pch=pch)
-summary(submodel2)
-
-}
-
-plot(1:7, ylim=c(-1, 1), xlim=c(0, 10), col='white')
-for (i in c(4:16)){submodel(lai.min=(i*0.5),lai.max = (i+1)*0.5, height.min=1.5,height.max=2.5, variable="NIR_Reflectance")}
-colnames(kitsin.want)
-
-summ(submodel2)
-
+# plot(1:7, ylim=c(-1, 1), xlim=c(0, 10), col='white')
+# for (i in c(4:16)){submodel(lai.min=(i*0.5),lai.max = (i+1)*0.5, height.min=1.5,height.max=2.5, variable="NIR_Reflectance")}
+# colnames(kitsin.want)
+# 
+# summ(submodel2)
+# ####
 
 
 library(corrplot)
-corrplot(cor(as.matrix(kitsin.nums), use="complete.obs"), method='color')
+cordat<-cor(as.matrix(kitsin.nums),use="complete.obs")
+stats<-cor.mtest(cordat)
+corrplot(cordat, p.mat = stats$p,method='color',sig.level = c(.001, .01, .05), pch.cex=0.9, insig = "label_sig", type="upper")
+
+cordat<-cor(as.matrix(kitsin.std),use="complete.obs")
+stats<-cor.mtest(cordat)
+corrplot(cordat, p.mat = stats$p,method='color',sig.level = c(.001, .01, .05), pch.cex=0.9, insig = "label_sig", type="upper")
+corrplot(cordat, p.mat = stats$p,method='number',pch=2,sig.level = c(.001, .01, .05), pch.cex=0.9, insig = "label_sig", type="upper")
+
+
 
 kitsin.nona<-na.omit(kitsin.std)
 pass1<-princomp(kitsin.nona)
