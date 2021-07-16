@@ -1,5 +1,5 @@
 
-
+if (!exists('dat.print')){source('Normalize_LP.R')}
 combo.lp<-cbind(dat.lp, dat.rel)
 dat.lp$above_ground_dry_yield[dat.lp$above_ground_dry_yield>5]<-NA
 
@@ -22,6 +22,32 @@ ggplot(dat.lp) +
   theme_minimal()
 
 #####
+
+#Create 'pcts' and 'ei', originally from phenomeplots
+extract.canval<-function(dat.h, dat.l, pct=0.5, res=20){
+  holder<-rep(-1, nrow(dat.l))
+  
+  for(i in 1:nrow(dat.l)){
+    
+    heightstr<-approx(as.numeric(dat.h[i,]), n=res)$y
+    datstr<-approx(as.numeric(dat.l[i,]), n=res)$y
+    
+    ind<-which(abs(heightstr-pct)==min(abs(heightstr-pct)))
+    at.pct<-datstr[ind]
+    
+    holder[i]<-at.pct
+  }
+  
+  return(holder)
+}
+
+pcts<-extract.canval(dat.h=height.rel, dat.l=dat.rel, res=100)
+
+#calculate interception efficiency
+ei<-1-(combo.lp$PPF1_Avg/combo.lp$PPF_above_Avg)
+ei[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]<-(1-(combo.lp$PPF1_Avg/combo.lp$PPF5_Avg))[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]
+#####
+
 
 ##Linear modeling####
 par(mfrow=c(1,1))
@@ -66,30 +92,6 @@ library(corrplot)
 
 summary(lm(above_ground_dry_yield~row_density+height+lai+Edge+z+Score, data=dat.lp))
 
-#Create 'pcts', originally from phenomeplots
-extract.canval<-function(dat.h, dat.l, pct=0.5, res=20){
-  holder<-rep(-1, nrow(dat.l))
-  
-  for(i in 1:nrow(dat.l)){
-    
-    heightstr<-approx(as.numeric(dat.h[i,]), n=res)$y
-    datstr<-approx(as.numeric(dat.l[i,]), n=res)$y
-    
-    ind<-which(abs(heightstr-pct)==min(abs(heightstr-pct)))
-    at.pct<-datstr[ind]
-    
-    holder[i]<-at.pct
-  }
-  
-  return(holder)
-}
-
-pcts<-extract.canval(dat.h=height.rel, dat.l=dat.rel, res=100)
-
-#calculate interception efficiency
-ei<-1-(combo.lp$PPF1_Avg/combo.lp$PPF_above_Avg)
-ei[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]<-(1-(combo.lp$PPF1_Avg/combo.lp$PPF5_Avg))[combo.lp$PPF_above_Avg<combo.lp$PPF5_Avg]
-
 
 kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei, dat.lp$nir.700.1000/dat.lp$vis.400.700)
 colnames(kitsin)[c(22:26,29:30, 31:38)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance","NIR_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness", "Interception_efficiency", "NIR_VIS_ratio")
@@ -124,9 +126,9 @@ plot_summs(selectmodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
 #Structure explains some 31%, environment
 
 library(fastDummies)
-kitsin.want<-kitsin[,c(22:26,29:30, 31:38)]; #:33, 35:
-kitsin.dum<-dummy_cols(kitsin.want)[15:18]
-kitsin.nums<-kitsin.want[,c(1:8, 10, 12:14)]
+kitsin.want<-kitsin[,c(22:26,29:30, 31:38)];
+kitsin.dum<-dummy_cols(kitsin.want)[16:19]
+kitsin.nums<-kitsin.want[,c(1:8, 10, 12:15)]
 kitsin.std<-cbind(scale(kitsin.nums, center=TRUE), kitsin.dum)
 
 par(mar=c(4,4,4,1))
@@ -151,7 +153,7 @@ ggplot(kitsin) +
   geom_boxplot(fill = "#ffffff") +
   theme_minimal()
 
-
+######
 # submodel<-function(lai.min, lai.max, height.min, height.max, variable) { ####
 # #kitsin.subset<-kitsin.want[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max), ]
 # #kitsin.subset.num<-(kitsin.subset[,c(1:8, 10, 12:13)]);kitsin.subset.dum<-dummy_cols(kitsin.subset)[12:16]
@@ -176,7 +178,7 @@ ggplot(kitsin) +
 # colnames(kitsin.want)
 # 
 # summ(submodel2)
-# ####
+######
 
 
 library(corrplot)
@@ -196,7 +198,7 @@ pass1<-princomp(kitsin.nona)
 summary(pass1)
 loadings(pass1)
 biplot(pass1)
-
+#####
 #summary(lm(above_ground_dry_yield~+lai+Edge.+z+Score, data=dat.flood))
 
 #dat.noflood<-dat.flood[dat.flood$Edge.=="0",]
@@ -307,3 +309,17 @@ biplot(pass1)
 # plot(dat.lp$vis.400.700~dat.lp$height)
 # 
 # smoothScatter(pcts~dat.lp$above_ground_dry_yield)
+#####
+fact.dat<-kitsin.nona[,c(1:3, 5:10, 12)] #Full (minus yield, dummies). Can add/remove curvefit steepness (11) for slightly different results
+fact.dat.r<-kitsin.nona[, c(1:3, 5:6, 9:13)] #uses vis/nir ratio instead of individual values
+fact.dat.t<-kitsin.nona[,c(1:3, 5:8, 12)] #uses regular vis/nir but thins light vars to interception efficiency
+fact.dat.tr<-kitsin.nona[,c(1:3, 5:6,12:13)] #both; ratio vis/nir and thinned light vars
+fact.cor<-cov.wt(fact.dat)
+fact.n<-factanal(x=fact.dat, factors=6, n.obs=960); fact.n
+#fact.c<-factanal(covmat=fact.cor, factors=3, n.obs=960)
+
+comp.dat<-kitsin.nona[,c(1:10, 12, 14, 16)]
+thincomp<-princomp(comp.dat)
+summary(thincomp)
+loadings(thincomp)
+biplot(thincomp)
