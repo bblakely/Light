@@ -8,6 +8,14 @@ pre<-c("SRG1", "SRG2", "SRG3");west<-c("SRG1", "SRG2", "SRG3","SRW1", "SRW2", "S
 
 e.ind<-which(sorg.lai$PLOT.ID%in%east); w.ind<-which(sorg.lai$PLOT.ID%in%west); p.ind<-which(sorg.lai$PLOT.ID%in%pre)
 
+sorg.lai.share<-sorg.lai[, c(1,3,7,9:10)]
+sorg.lai.share$condition<-rep("unspecified", nrow(sorg.lai.share))
+sorg.lai.share$condition[e.ind]<-"Undisturbed"; sorg.lai.share$condition[w.ind]<-"Disturbed"; sorg.lai.share$condition[p.ind]<-"Pre-Flood"
+sorg.lai.share$rep<-rep(0, nrow(sorg.lai.share)); sorg.lai.share$rep<-as.numeric(substr(sorg.lai.share$PLOT.ID, 4,5))
+sorg.lai.share$PLOT.ID<-substr(sorg.lai.share$PLOT.ID, 1,3)
+
+write.csv(sorg.lai.share, "Efarm_Sorghum_2020_Hand_LAI.csv", row.names=FALSE)
+
 plot(sorg.lai$LAI[e.ind]~sorg.lai$Day.Number[e.ind], col='blue')
 points(sorg.lai$LAI[w.ind]~sorg.lai$Day.Number[w.ind], col='red')
 points(sorg.lai$LAI[p.ind]~sorg.lai$Day.Number[p.ind], col='black')
@@ -42,6 +50,12 @@ lidar.dat$flood<-0
 lidar.dat$flood[lidar.dat$range==1]<-1
 lidar.dat$flood[lidar.dat$range==2&lidar.dat$row>1]<-1
 lidar.dat$flood[lidar.dat$range==3&lidar.dat$row==6]<-1
+
+lidar.dat.share<-lidar.dat; 
+lidar.dat.share$flood[lidar.dat.share$flood==1]<-"Disturbed"; lidar.dat.share$flood[lidar.dat.share$flood==0]<-"Undisturbed"
+colnames(lidar.dat.share)[5:7]<-c("S coordinate", "E coordinate", "condition")
+
+write.csv(lidar.dat.share, "Efarm_Sorghum_2020_LiDAR_LAI.csv", row.names=FALSE)
 
 
 lidar.w<-lidar.dat[lidar.dat$flood==1,]; lidar.e<-lidar.dat[lidar.dat$flood==0,]
