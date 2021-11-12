@@ -342,6 +342,7 @@ subset<-which(dat.lp$doy==234)
 
 dat.min.bplot<-plotmeans.all[subset,];dat.min.bplot$line<-as.factor(dat.min.bplot$line)
 
+library(multcompView)
 #Height
 bplot<-boxplot(dat.min.bplot$height ~ dat.min.bplot$line , ylim=c(min(dat.min.bplot$height) , 1.1*max(dat.min.bplot$height)) , ylab="height" , main="", plot=FALSE)
 heightm<-(aov(height~line, data=dat.min.bplot)); summary(heightm)
@@ -448,3 +449,4 @@ plot.summs<-merge(ancil.ag, lai.days)[2:6,]
 # lines(aggregate(ie~doy, data=plotmeans.all[plotmeans.all$line==4,], FUN='mean'), ylim=c(0.7, 1), col="orange")
 # lines(aggregate(ie~doy, data=plotmeans.all[plotmeans.all$line==5,], FUN='mean'), ylim=c(0.7, 1), col='green')
 # lines(aggregate(ie~doy, data=plotmeans.all[plotmeans.all$line==0,], FUN='mean'), ylim=c(0.7, 1), col='purple')
+

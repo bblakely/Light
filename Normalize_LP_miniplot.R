@@ -47,6 +47,7 @@ for (i in (c(1:nrow(dat.c)))){
 dat.rel<-data.frame(t(apply(cliplp.dat, 1, function(x) x/max(x, na.rm=TRUE))))
 height.rel<-data.frame(t(apply(height.dat, 1, function(x) x/max(x, na.rm=TRUE))))
 
+
 #Reverse the scales for plotting
 dat.scale<-data.frame(t(apply(dat.rel, 1, function(x) rev(x)))) #light starting from the top
 height.scale<-data.frame(t(apply(height.rel, 1, function(x) rev(as.numeric(max(x, na.rm=TRUE)-x))))) #height starting from the top
@@ -59,7 +60,6 @@ doesitfit<-rep('n', 960);propsat<-rep(1, 960);coefs=rep(999, 960)
 fake<-data.frame(seq(from=0, to=1, by=0.05));colnames(fake)<-'height.norm' #For smooth plotting
 
 sat.sun<-0.46 #Fraction full sun considered saturating
-
 
 
 #Curvefitting
@@ -202,6 +202,10 @@ extract.canval<-function(dat.h, dat.l, pct=0.5, res=50){
   return(holder)
 }
 
+#Extract sun at 50
+pcts<-extract.canval(dat.h=height.rel, dat.l=dat.rel, res=100)
+
+dat.lp$pcts<-unlist(unname(pcts))
 
 par(mar=c(4,4,2,1))
 for(d in unique(dat.lp$doy)){
@@ -260,3 +264,47 @@ legend(0.7, 1, legend=paste("line",c(0:5)), lwd=2, col=c(1:6), bty='n')
 
 }
 
+
+#Check phenotypes
+for(d in unique(dat.lp$DOY)){
+  daydat<-dat.lp[dat.lp$DOY==d,]
+  daydat$line<-as.factor(daydat$line)
+  bplot<-boxplot(pcts~line, dat=daydat, plot=FALSE)
+  
+  stat<-aov(pcts~line, data=daydat)
+  xd<-TukeyHSD(stat);xd
+  letlab<-generate_label_df(xd, 1)
+  over <- 0.1*max(bplot$stats[nrow(bplot$stats),], na.rm=TRUE)
+  boxplot(formula=pcts~line, dat=daydat, main=paste ("Light at 50 DOY", d),  ylim=c(0,1.2))
+  text( c(1:nlevels(daydat$line)) , bplot$stat[nrow(bplot$stats),]+over , letlab[,1])
+  
+  #print(paste("DOY", d))
+  #print(summary(stat))
+  
+  daydat<-dat.lp[dat.lp$DOY==d,]
+  daydat$line<-as.factor(daydat$line)
+  bplot<-boxplot(ie~line, dat=daydat, plot=FALSE)
+  
+  stat<-aov(ie~line, data=daydat)
+  xd<-TukeyHSD(stat);xd
+  letlab<-generate_label_df(xd, 1)
+  over <- 0.1*max(bplot$stats[nrow(bplot$stats),], na.rm=TRUE)
+  boxplot(formula=pcts~line, dat=daydat, main=paste ("Interception efficiency DOY", d), ylim=c(0,1.2))
+  text( c(1:nlevels(daydat$line)) , bplot$stat[nrow(bplot$stats),]+over , letlab[,1])
+  
+  
+  #print(paste("DOY", d))
+  #print(summary(stat))
+}
+  
+#need to get a light at 50
+library(MASS); library(forecast); 
+dat<-dat.lp$ie
+lam<-BoxCox.lambda(dat)
+test<-BoxCox(dat, lambda=lam)
+plot(density(test))
+
+  
+  
+  
+  
