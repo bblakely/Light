@@ -2,7 +2,10 @@
 
 source('ImportCS.R') #TOA5 importer
 
-r13.raw<-importCSdata('allday/CR1000XSeries_1_Quantum_08_19_20_B3_R13.dat') #Raw data
+
+
+r13.raw<-importCSdata('allday/CR1000XSeries_1_Quantum_08_14_20_B3_R3.dat')
+#('allday/CR1000XSeries_1_Quantum_08_19_20_B3_R13.dat') #Raw data
 
 breaktime<-function(timestamp){
   Y<-as.numeric(format(timestamp, "%Y"))
@@ -24,7 +27,7 @@ plot(r13.raw$PPF_above_Avg~r13.ts$decdoy)
 #Find runthrough times####
 path<-"allday/splits"
 list.files(path)
-spl<-read.csv(paste(path, "Allday_mini_5_14_B4.csv", sep='/'), header=FALSE)
+spl<-read.csv(paste(path, "Allday_mini_5_3_B3.csv", sep='/'), header=FALSE)
 times<-(as.POSIXlt(strptime(spl[,4],"%Y-%m-%d %H:%M:%S")))
 plots<-spl[,1:3]; colnames(plots)<-c('row', 'range','io')
 dectime<-breaktime(timestamp=times)$dectime
@@ -98,3 +101,4 @@ legend(0.7, 1, legend=c("measured at noon", "cumulative estimate"), col=c('blue'
 
 #r3.raw<-importCSdata('allday/CR1000XSeries_1_Quantum_08_17_20_B3_R8.dat')
 #r3.ts<-breaktime(r3.raw$TIMESTAMP)
+
