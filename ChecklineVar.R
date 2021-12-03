@@ -10,6 +10,7 @@ dat.print<-dat.print[dat.print$Flood==0,]
 friendlynames<-paste(substr(dat.check$set_id, 1,3), substr(dat.check$set_id, 5,6), sep='')
 
 dat.check.bplot<-dat.check;dat.check.bplot$set_id<-as.factor(friendlynames)
+library(multcompView)
 generate_label_df <- function(TUKEY, variable){
   
   # Extract labels and factor levels from Tukey post-hoc 

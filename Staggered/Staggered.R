@@ -1,10 +1,9 @@
 
-
-
+wd<-getwd();if(wd!="D:/R/Light/Staggered"){setwd("Staggered")}
 par(mfrow=c(1,2))
 
 #LAI 3000
-strat.raw<-read.csv("LeafArea_Strat.csv", stringsAsFactors = FALSE)
+strat.raw<-read.csv("LeafArea_Strat.csv", stringsAsFactors = FALSE, na.strings="N/A")
 strat<-strat.raw[1:5,1:9]
 plot(as.numeric(strat[i,6:9]), ylim=c(2500,24000), col='white', main= "LAI3000 cumulative", xlab='"height"', ylab='leaf area')
 for(i in 1:5){
@@ -35,4 +34,24 @@ lines(cumsum(dats), col=i)
 }
 laiprof<-data.frame(laiprof); colnames(laiprof)<-colnames(lai)
 legend(1,6,c(1:5), lwd=1, col=c(1:5), title="plot")
+
+#Ancillary Structural data
+
+lidar.lai.raw<-read.csv("LidarLAI.csv")
+boxplot(lai~plot_id, data=lidar.lai.raw,subset=species=='es')
+
+hand.lai.raw<-read.csv("LAI 2200_LAI.csv")
+boxplot(lai~plot_id, data=hand.lai.raw,subset=species=='es')
+
+
+
+lidar.height.raw<-read.csv("LidarHeight.csv")
+boxplot(height~plot_id, data=lidar.height.raw, subset=species=='es')
+
+hand.height.raw<-read.csv("HandHeight.csv")
+boxplot(height~plot_id, data=hand.height.raw, subset=species=='es')
+
+
+
+
 

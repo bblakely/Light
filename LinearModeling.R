@@ -129,6 +129,7 @@ library(fastDummies)
 kitsin.want<-kitsin[,c(22:26,29:30, 31:38)];
 kitsin.dum<-dummy_cols(kitsin.want)[16:19]
 kitsin.nums<-kitsin.want[,c(1:8, 10, 12:15)]
+kitsin.full<-cbind(kitsin.want, kitsin.dum)
 kitsin.std<-cbind(scale(kitsin.nums, center=TRUE), kitsin.dum)
 
 par(mar=c(4,4,4,1))

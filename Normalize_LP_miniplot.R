@@ -297,14 +297,68 @@ for(d in unique(dat.lp$DOY)){
   #print(summary(stat))
 }
   
-#need to get a light at 50
-library(MASS); library(forecast); 
-dat<-dat.lp$ie
-lam<-BoxCox.lambda(dat)
-test<-BoxCox(dat, lambda=lam)
-plot(density(test))
+library(MASS); library(forecast);library(bestNormalize)
 
+doys<-unique(dat.lp$DOY)
+par(mfrow=c(3,2))
+
+for(i in doys){
   
+  dat.day<-dat.lp[dat.lp$DOY==i,]
   
+  for(l in c(0:5)){
+    
+    dat<-dat.day[dat.day$line==l,]
   
+    col='red'
+    ie<-dat$ie
+    
+    choice<-bestNormalize(ie, loo=TRUE, allow_orderNorm = FALSE)
+    
+    print(paste("ie doy", i, "line", "l:"))
+    test<-choice[[1]]#BoxCox(dat, lambda=lam)
+    
+    
+    if(shapiro.test(test)$p.value>0.01){print("success!"); col='black'}else{print("FAILURE")}
+    print(choice$chosen_transform)
+    print("########")
+    
+    
+    plot(density(test),main=paste("ie doy", i, "line", l), col=col)
+    
+  
+    col='red'
+    pcts<-dat$pcts
+    
+    choice<-bestNormalize(pcts, loo=TRUE, allow_orderNorm = FALSE)
+    
+    print(paste("50% doy", i, "line", "l:"))
+    test<-choice[[1]]#BoxCox(dat, lambda=lam)
+    
+    if(shapiro.test(test)$p.value>0.05){print("success!");col='black'}else{print("FAILURE")}
+    print(choice$chosen_transform)
+    print("########")
+    
+    plot(density(test),main=paste("50% doy", i, "line", l), col=col)
+    shapiro.test(test)
+}
+}
+
+#All toghether
+par(mfrow=c(1,2))
+
+dat<-dat.lp$pcts
+choice<-bestNormalize(dat, allow_orderNorm = FALSE); choice
+test<-choice[[1]]#BoxCox(dat, lambda=lam)
+shapiro.test(test)
+plot(density(test),main="50%")
+#standardized sqrt works, as does ordernorm
+
+dat<-dat.lp$ie
+choice<-bestNormalize(dat); choice
+test<-bestNormalize(dat)[[1]]#BoxCox(dat, lambda=lam)
+shapiro.test(test)
+plot(density(test),main="ie")
+#This one needs ordernorm.
+
   
