@@ -97,13 +97,12 @@ kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei, dat.lp$nir.700.1000/da
 colnames(kitsin)[c(22:26,29:30, 31:38)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance","NIR_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness", "Interception_efficiency", "NIR_VIS_ratio")
 #Give this better names
 library(jtools, broom)
-sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Fit_Type+Curvefit_Steepness, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Proportion_Saturated_Sun+Fit_Type+Curvefit_Steepness, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
 summary(sinkmodel)
 summ(sinkmodel)
 plot_summs(sinkmodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
 
-
-submodel<-(lm(Yield~Height+LAI+Row_Stem_Density+Flood_Affected+Lodging_Score+Elevation+VIS_Reflectance+NIR_Reflectance+Interception_efficiency+Row_Stem_Density, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+submodel<-(lm(Yield~Height+LAI+Row_Stem_Density+Flood_Affected+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Row_Stem_Density, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
 plot_summs(submodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
 summary(submodel)
 summ(submodel)
@@ -116,12 +115,25 @@ step(sinkmodel)
 
 
 selectmodel<-lm(formula = Yield ~ Height + LAI + Lodging_Score + Elevation + 
-                                   NIR_VIS_ratio + Interception_efficiency,
+                                   NIR_VIS_ratio + Interception_efficiency+Proportion_Saturated_Sun,
                                    data = kitsin)
                   
 summary(selectmodel)
 summ(selectmodel)
 plot_summs(selectmodel, scale=TRUE, colors="forest green")#colors = "#7B883F")
+
+
+sinkmodel.d<-(lm(Yield~Height+LAI+Row_Stem_Density+Flood_Affected_1+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Fit_Type_E+Curvefit_Steepness, data=kitsin.std)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+summary(sinkmodel.d)
+summ(sinkmodel.d)
+plot_summs(sinkmodel.d, scale=TRUE, colors="forest green")#colors = "#7B883F")
+
+step(sinkmodel.d)
+selectmodel.d<-lm(formula = Yield ~ Height + LAI + Lodging_Score + Elevation + 
+     NIR_VIS_ratio + Interception_efficiency, data = kitsin.std)
+summary(selectmodel.d)
+summ(selectmodel.d)
+plot_summs(selectmodel.d, scale=TRUE, colors="forest green")#colors = "#7B883F")
 
 #Structure explains some 31%, environment
 
