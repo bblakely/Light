@@ -92,8 +92,9 @@ kitsin.num.norm$Light_at_50_norm<-newlight
 kitsin.num.norm$Elevation_Above<-elev.above.mean
 kitsin.num.norm$Elevation_Below<-elev.below.mean
 kitsin.num.norm$Elevation_Unflood<-elev.unflooded
+kitsin.num.norm1<-cbind(kitsin.num.norm, kitsin.dum)
 kitsin.std.norm<-cbind(scale(kitsin.num.norm, center=TRUE), kitsin.dum)
-
+kitsin.calm<-kitsin.std.norm[which(kitsin.nums$Lodging_Score==0&kitsin.std.norm$Flood_Affected_1==0),]
 
 model<-'
 Yield~Height+LAI+Lodging_Score+NIR_VIS_ratio+Proportion_Saturated_Sun+Elevation_Above+Flood_Affected_1
@@ -102,16 +103,27 @@ Height~Flood_Affected_1+Elevation_Above
 Proportion_Saturated_Sun~Height+LAI+Flood_Affected_1
 NIR_VIS_ratio~Flood_Affected_1
 Lodging_Score~Height
-
 '
 
+model.calm<-'
+Yield~Height+LAI+NIR_VIS_ratio+Proportion_Saturated_Sun+Elevation_Above
+LAI~Height+Elevation_Above
+Height~Elevation_Above
+Proportion_Saturated_Sun~Height+LAI
+'
+
+#problem: call in lavaan syntax; effects.sem does not work on lavaan output
+
 test.std<-sem(model, data=kitsin.std.norm, estimator="MLM")
+#test.std<-sem(model.calm, data=kitsin.calm, estimator="MLM")
 
-summary(test.std, fit.measures = TRUE, standardized=T,rsquare=T)
-semPaths(test.std, 'std', layout='spring', residuals=FALSE, exoCov=FALSE, nCharNodes=5)
+summary(test.std, fit.measures = TRUE, standardized=F,rsquare=T)
+semPaths(test.std, 'std', layout='circle',residuals=FALSE, exoCov=FALSE, nCharNodes=5)
 
 
+semPaths(test.std, nCharNodes=5, layout="circle")
 
+thing<-effects(test.std)
 
 #semPaths(test, 'std', layout='circle', residuals=FALSE, nCharNodes=5)
 

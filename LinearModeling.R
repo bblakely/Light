@@ -96,7 +96,7 @@ summary(lm(above_ground_dry_yield~row_density+height+lai+Edge+z+Score, data=dat.
 kitsin<-cbind(dat.lp, pcts, doesitfit, propsat,coefs, ei, dat.lp$nir.700.1000/dat.lp$vis.400.700)
 colnames(kitsin)[c(22:26,29:30, 31:38)]<-c("Row_Stem_Density", "Height", "LAI", "Yield", "Lodging_Score", "Elevation", "VIS_Reflectance","NIR_Reflectance", "Flood_Affected", "Light_at_50","Fit_Type","Proportion_Saturated_Sun","Curvefit_Steepness", "Interception_efficiency", "NIR_VIS_ratio")
 #Give this better names
-library(jtools, broom)
+library(jtools, broom)#, ggstance)
 sinkmodel<-(lm(Yield~Row_Stem_Density+Height+LAI+Flood_Affected+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Proportion_Saturated_Sun+Fit_Type+Curvefit_Steepness, data=kitsin)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
 summary(sinkmodel)
 summ(sinkmodel)
@@ -166,6 +166,83 @@ ggplot(kitsin) +
   geom_boxplot(fill = "#ffffff") +
   theme_minimal()
 
+#Model predicting lodging#####
+
+lodge.sinkmodel<-(lm(Lodging_Score~Height+LAI+Flood_Affected_1+Row_Stem_Density+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Proportion_Saturated_Sun+Curvefit_Steepness, data=kitsin.std)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+summary(lodge.sinkmodel)
+step(lodge.sinkmodel)
+
+
+lodge.step<-lm(formula = Lodging_Score ~ Row_Stem_Density + Height + LAI + 
+                   Flood_Affected_1 + Elevation + NIR_VIS_ratio + Proportion_Saturated_Sun, 
+                 data = kitsin.std)
+
+summary(lodge.step);plot_summs(lodge.step)
+
+
+lodge.sparse<-lm(formula = Lodging_Score ~ Row_Stem_Density + Height + Flood_Affected_1+ NIR_VIS_ratio, 
+                 data = kitsin.std)
+
+summary(lodge.sparse);plot_summs(lodge.sparse)
+#plot(Height~Lodging_Score, dat=kitsin); abline(coefficients(lm(Height~Lodging_Score, dat=kitsin)))
+#plot(Lodging_Score~Height, dat=kitsin); abline(coefficients(lm(Lodging_Score~Height, dat=kitsin)))
+
+lodge.ind<-rep(0, nrow(kitsin));lodge.ind[which(kitsin$Lodging_Score>=3)]<-1
+boxplot(kitsin$Height~lodge.ind)
+
+lodge.agg<-aggregate(Height~Lodging_Score, data=kitsin, FUN='mean')
+plot(lodge.agg, ylim=c(quantile(kitsin$Height, c(0.25,0.75)))); abline(h=mean(kitsin$Height))
+
+vioplot(Height~Lodging_Score, data=kitsin)
+
+#let's play...
+
+outcome<-lodge.ind #index of plots with moderate to severe lodging
+
+#Stratify heights
+
+splits<-c(0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5)
+splits2<-c(0.5,  1,  1.5,  2,  2.5)
+splits3<-seq(from=0, to=2.5, by=0.2)
+
+test<-as.numeric(cut(kitsin$Height, splits))
+
+resp<-agg<-aggregate(outcome, by=list(test), FUN='mean')$x #odds of moderate to severe lodging at each height
+risk<-aggregate(kitsin$Height, by=list(test), FUN='mean')$x #mean heights in each bin
+
+
+fit<-nls(resp ~ a*exp(k*risk), start=c(a=0.0001, k=5))
+#fit<-nls(rest ~ a*(x^z^risk), start=c(a=0.0001, x=4, z=2))
+coef<-coefficients(fit);coef
+yp<-coef[1]*exp(coef[2]*risk)
+
+plot(resp~risk, ylab="chance of mod to sev lodging", xlab='height')
+lines(yp~risk)
+
+
+vioplot(kitsin$Lodging_Score~test, names=paste(splits[1:8], '-', splits[2:9]),
+        xlab='height (binned)', ylab='lodging score')
+
+#y<-0.0005*(4^2^risk)
+#lines(y~risk)
+
+#####
+
+#Models exploring flood recovery#####
+
+kitsin.flood<-na.omit(kitsin[kitsin$Flood_Affected==1,])
+kitsin.flood<-na.omit(kitsin.std[kitsin.std$Flood_Affected_1==1,])
+
+floodsink<-(lm(Yield~Row_Stem_Density+Height+LAI+Lodging_Score+Elevation+NIR_VIS_ratio+Interception_efficiency+Light_at_50+Proportion_Saturated_Sun, data=kitsin.flood)) # Light_at_50+Fit_Type+Proportion_Saturated_Sun+Curvefit_Steepness[currently problems with those columns]
+
+step(floodsink)
+
+flood.select<-lm(Yield ~ Row_Stem_Density + Height + LAI + Lodging_Score + 
+  Light_at_50, data=kitsin.flood)
+  
+  plot_summs(flood.select)
+#####  
+  
 ######
 # submodel<-function(lai.min, lai.max, height.min, height.max, variable) { ####
 # #kitsin.subset<-kitsin.want[which(kitsin.want$LAI<lai.max & kitsin.want$LAI>lai.min & kitsin.want$Height>height.min & kitsin.want$Height<height.max), ]
