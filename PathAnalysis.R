@@ -133,3 +133,47 @@ thing<-effects(test.std)
 
 
 #Need a latent/combined variable for light capture
+
+
+modelparam<-'
+Yield~b1*Height+b2*LAI+b3*Lodging_Score+b4*NIR_VIS_ratio+b5*Proportion_Saturated_Sun+c1*Elevation_Above+c2*Flood_Affected_1
+LAI~a3*Flood_Affected_1+d1*Height+a7*Elevation_Above
+Height~a4*Flood_Affected_1+a6*Elevation_Above
+Proportion_Saturated_Sun~d2*Height+d3*LAI+a2*Flood_Affected_1
+NIR_VIS_ratio~a1*Flood_Affected_1
+Lodging_Score~d4*Height
+
+a4b1:= a4*b1
+a4d2:= a4*d2
+a4d1b2 := a4*d1*b2
+a4d2b5 := a4*d2*b5
+a4d4b3 := a4*d4*b3
+a3b2 := a3*b2
+a3d3:= a3*d3
+a3d3b5 := a3*d3*b5
+a1b4 := a1*b4
+a2b5 := a2*b5
+a6b1 := a6*b1
+a6d1b2 := a6*d1*b2
+a6d2b5 := a6*d2*b5
+a6d4b3 := a6*d4*b3
+a7b2 := a7*b2
+a7d3b5 := a7*d3*b5
+d4b3:= d4*b3
+
+total := c1+c2+(a4*b1)+(a4*d1*b2)+(a4*d2*b5)+(a4*d4*b3)+(a3*b2)+(a3*d3*b5)+(a1*b4)+(a2*b5)+(a6*b1)+(a6*d1*b2)+(a6*d2*b5)+(a6*d4*b3)+(a7*b2)+(a7*d3*b5)
+
+
+'
+result<-sem(modelparam, data=kitsin.std.norm)
+est<-parameterestimates(result, standardized = TRUE, rsquare = TRUE)
+
+semPaths(result, 'stdresu', layout='circle',residuals=FALSE, exoCov=FALSE, nCharNodes=5)
+
+
+stdresult<-standardizedsolution(result) #will give proper ci's
+
+
+
+
+

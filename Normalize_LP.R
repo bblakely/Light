@@ -159,7 +159,7 @@ plot(density(coefs[doesitfit=="E"]), main='coefficients', xlim=c(-30,0), xlab="V
 
 
 colnames(dat.scale)<-c("L6", "L5", "L4", "L3", "L2", "L1")
-dat.print<-cbind(dat.lp[c(1:8)], dat.scale, dat.lp[15:32])
+dat.print<-cbind(dat.lp[c(1:8)], dat.scale, dat.lp[15:33])
 colnames(dat.print)[ncol(dat.print)]<-"Flood"
 
 

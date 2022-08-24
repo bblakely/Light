@@ -207,9 +207,16 @@ if(ud=="upward"&lam=="long"){plotmeans.sr->ul.lw.mean;sr.wave.lw<-sr.wave} ; if(
 if(exists('ul.sw.mean')&exists('dl.sw.mean')&lam=="short"){
 
 dl.sw.dat<-dl.sw.mean[,5:(nwave+4)]; ul.sw.dat<-ul.sw.mean[,5:(nwave+4)]
-refl.sw<-dl.sw.dat/ul.sw.dat
+refl.sw<-dl.sw.dat/ul.sw.dat #Full spectrum
+refl.sw.par<-dl.sw.dat[,61:361]/ul.sw.dat[,61:361] #par only
+
+sr.wave.sw.par<-sr.wave.sw[61:361]
 
 colgr<-colorRampPalette(c('cyan','antiquewhite', 'orange')); colvec<-colgr(30)[as.numeric(cut(dl.sw.mean$dectime, breaks=30))]
+
+refl.sw<-refl.sw #switch for which to use
+sr.wave.sw<-sr.wave.sw
+
 #par(mfrow=c(1,1))
 plot(unlist(refl.sw[1,])~sr.wave.sw, col='white', ylim=c(-0.4, 0.9))
 for(i in sort(sample(1:nrow(refl.sw), 50))){
@@ -302,8 +309,13 @@ dat.full.sr<-sr.raw[,5:ncol(sr.raw)]
 vis.400.700<-rowMeans(dat.full.sr[sr.wave%in%c(400:700)])
 nir.700.1000<-rowMeans(dat.full.sr[sr.wave%in%c(700:1000)])
 
-dat.sr<-data.frame(cbind(ref.ts[explots,1:4], vis.400.700,nir.700.1000))
+nir<-rowMeans(dat.full.sr[sr.wave%in%c(850:880)])
+red<-rowMeans(dat.full.sr[sr.wave%in%c(640:670)])
+
+ndvi<-(nir-red)/(nir+red)
+
+dat.sr<-data.frame(cbind(ref.ts[explots,1:4], vis.400.700,nir.700.1000, ndvi))
 
 #Final cleanup
-rm('refl.merge', 'refl.lw', 'refl.sw','ref.ts', 'dat.full.sr', 'sr.raw')
+#rm('refl.merge', 'refl.lw', 'refl.sw','ref.ts', 'dat.full.sr', 'sr.raw')
 

@@ -93,12 +93,12 @@ colnames(light.full)
 var.want<-c("row", "range", "dectime", "DOY.x", "H", "M","S",
             "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
             "noisy","ns","raw.order","exp.order","plot_id","genotype_name","block_id", "set_id",
-            "row_density","height","lai", "above_ground_dry_yield","plot_id.x","x", "y", "z","Score", "vis.400.700", "nir.700.1000", "Edge")
+            "row_density","height","lai", "above_ground_dry_yield","plot_id.x","x", "y", "z","Score", "vis.400.700", "nir.700.1000", "ndvi", "Edge")
   
   #Full variable list
   #c("row", "range", "dectime", "DOY.x", "H", "M","S","BattV_Min",
   #"PanelT", "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
-  #"noisy","ns","raw.order","exp.order","year" , "site_id","plot_id" , "row_set", "genotype_name","block_id", "set_id",
+  #"noisy","ns","raw.order","exp.order","year" , "site_id","plot_id" , "row_set", "genotype_name","block_id", "ndvi", "set_id",
   #"date.x","row_density","comment","date.y","height","YEAR.x", "DOY.y", "date","lai","YEAR.y","DOY")
 
 cols<-which(colnames(light.full)%in%var.want); colnames(light.full)[cols] #Columns of data you want; excludes duplicate metadata, dates, etc.
