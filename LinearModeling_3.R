@@ -268,7 +268,9 @@ selectmod<-step(sinkmodel.chk.std)
 
 summary(selectmod)
 summ(selectmod)
-plot_summs(selectmod, scale=TRUE, colors="forest green")#colors = "#7B883F")
+coefnames<-c("CHK-B"="set_idCHK-B", "CHK-C"="set_idCHK-C", "CHK-D"="set_idCHK-D", "CHK-E"="set_idCHK-E", "CHK-F"="set_idCHK-F", "Height"="Height", "LAI"="LAI", "Lodging Score"="Lodging_Score", "NDVI"="NDVI")
+plot_summs(selectmod, scale=TRUE, colors="forest green", coefs=coefnames)#colors = "#7B883F")
+nums<-plot_summs(selectmod, scale=TRUE, colors="forest green", coefs=coefnames)$data
 
 
 #Run for individual lines (doesn't show much, usually just if some plots were flooded)
