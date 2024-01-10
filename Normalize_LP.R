@@ -88,14 +88,15 @@ sat.sun<-0.46 #Fraction full sun considered saturating
 
 fiteq<-expression(e^~(k~'*'~height))
 
-plotsamp<-sample(1:960, 27); plotsamp<-c(211,226)
+plotsamp<-sample(1:960, 27); plotsamp<-c(801,760)#211,226; 801, 
 #par(mfrow=c(3,3))
 for(i in 1:960){ #1:960 for all
   
   if(i%in%plotsamp){
+    par(mfrow=c(1,1))
     #plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='height', ylab='light', main=i)
-    plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='Depth (scaled) ', ylab='Light (scaled)', pch=19,cex=1.5, xlim=c(0, 1) )
-    lines(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), lty=2, col="#3A4919",lwd=2)
+    plot(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), xlab='Depth (scaled) ', ylab='Light (scaled)', pch=19,cex=1.5, cex.axis=1.3, font.axis=2, xlim=c(0, 1) )
+    #lines(as.numeric(dat.scale[i,])~(as.numeric(height.scale[i,])), lty=2, col="#3A4919",lwd=2)
     #legend(0.75, 1,legend=c("observations",fiteq), lwd=c(NA,2), pch=c(19,NA), col=c( 'black','#7B883F'), bty='n', seg.len=1)
     }
   
@@ -107,7 +108,13 @@ for(i in 1:960){ #1:960 for all
     if(exists('fit3.b')){
       if(i%in%plotsamp){lines(fake$height.norm, predict(fit3.b, newdata=fake), col='#7B883F', lwd=2)}
       AICexp<-round(AIC(fit3.b), 3); #text(0.2, 1000, paste("EXP= ", AICexp), cex=0.8)
-      doesitfit[i]<-'E';coefs[i]<-summary(fit3.b)$coefficients[1]; if(i%in%plotsamp){text(0.9, 0.95, paste("k =",round(coefs[i], 2)), cex=1.3)}
+      doesitfit[i]<-'E';coefs[i]<-summary(fit3.b)$coefficients[1]; 
+      if(i%in%plotsamp){
+        text(0.9, 0.95, paste("k =",round(coefs[i], 2)), cex=2)
+        name<-paste("Fig2_ex", i, sep="_")
+        dev.copy(png ,paste('plots/', name,".png", sep=""), width=, height=400)
+        dev.off()
+        }
       propsat[i]<-approx(x=predict(fit3.b, newdata=fake),y=fake$height.norm,xout=sat.sun)$y
       approx(x, y=x,xout=0.97)
       
@@ -120,7 +127,7 @@ for(i in 1:960){ #1:960 for all
   tryCatch({  
     fit3.c<-nls(curve~SSlogis(height.norm, Asym,xmid,scal))
     if(exists('fit3.c')){
-      if(i%in%plotsamp){lines(fake$height.norm, predict(fit3.c, newdata=fake), col='blue')}
+      #if(i%in%plotsamp){lines(fake$height.norm, predict(fit3.c, newdata=fake), col='blue')}
       AIClog<-round(AIC(fit3.c), 3); #text(0.2, 1000, paste("EXP= ", AICexp), cex=0.8)
       sat.log<-approx(x=predict(fit3.c, newdata=fake),y=fake$height.norm,xout=sat.sun)$y
       rm('fit3.c')
@@ -159,8 +166,8 @@ plot(density(coefs[doesitfit=="E"]), main='coefficients', xlim=c(-30,0), xlab="V
 
 
 colnames(dat.scale)<-c("L6", "L5", "L4", "L3", "L2", "L1")
-dat.print<-cbind(dat.lp[c(1:8)], dat.scale, dat.lp[15:33])
-colnames(dat.print)[ncol(dat.print)]<-"Flood"
+dat.print<-cbind(dat.lp[c(1:8)], dat.scale, dat.lp[16:40])
+colnames(dat.print)[32]<-"Flood"
 
 
 #write.csv(dat.print, "D:/R/TERRA_09.csv", row.names=FALSE)

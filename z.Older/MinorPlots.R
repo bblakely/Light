@@ -90,7 +90,7 @@ fit<-nls(resp ~ a*exp(k*risk), start=c(a=0.0001, k=5))
 coef<-coefficients(fit);coef
 yp<-coef[1]*exp(coef[2]*risk)
 
-plot(resp~risk, ylab="chance of moderate to severe lodging", xlab='height at DOY 212')
+plot(resp~risk, ylab="probability of moderate to severe lodging", xlab='height at DOY 212')
 lines(yp~risk)
 
 
@@ -117,6 +117,18 @@ flood.select<-lm(Yield ~ Row_Stem_Density + Height + LAI + Lodging_Score +
                    Light_at_50, data=kitsin.flood)
 
 plot_summs(flood.select)
+
+
+
+#General stats about flooded plants
+t.test(dat.lp.mod$row_density[which(dat.lp.mod$Edge==1)], dat.lp.mod$row_density[which(dat.lp.mod$Edge==0)])
+t.test(dat.lp.mod$height[which(dat.lp.mod$Edge==1)], dat.lp.mod$height[which(dat.lp.mod$Edge==0)])
+t.test(dat.lp.mod$lai[which(dat.lp.mod$Edge==1)], dat.lp.mod$lai[which(dat.lp.mod$Edge==0)])
+t.test(dat.lp.mod$ei[which(dat.lp.mod$Edge==1)], dat.lp.mod$ei[which(dat.lp.mod$Edge==0)])
+t.test(dat.lp.mod$pcts[which(dat.lp.mod$Edge==1)], dat.lp.mod$pcts[which(dat.lp.mod$Edge==0)])
+t.test(dat.lp.mod$propsat[which(dat.lp.mod$Edge==1)], dat.lp.mod$propsat[which(dat.lp.mod$Edge==0)])
+
+
 #####  
 
 #General show of damage
@@ -131,13 +143,11 @@ vioplot(kitsin$Yield~lodge.ind, ylim=c(1, 4), names=c("none to mild", "moderate 
 
 
 #Relationship between height and lodging
-plot(resp~risk, ylab="chance of moderate to severe lodging", xlab='height at DOY 212')
+plot(resp~risk, ylab="probability of moderate to severe lodging", xlab='height at DOY 212')
 lines(yp~risk)
 
 
-
 #Show relationship between light and yield changing
-
 
 par(mar=c(4,4,1,1), mfrow=c(3,1))
 plot(Yield~Proportion_Saturated_Sun, dat=kitsin, ylim=c(1,3.5),xlim=c(0.05,1))
@@ -154,7 +164,8 @@ text(0.8, 3, "IE>0.995 (8%)")
 
 
 library(esquisse)
-esquisser()
+#esquisser()
+library(gridExtra)
 
 
 kitsin %>%
@@ -168,8 +179,11 @@ kitsin %>%
   ) +
   geom_point(shape = "circle") +
   scale_color_distiller(palette = "RdBu", direction = 1) +
+  xlim(0, 1)+
   theme_minimal()
 
+sunyield<-(lm(Yield~Proportion_Saturated_Sun, data=kitsin.std))
+summary(sunyield); coefficients(sunyield)
 
 #Trendlines
 all<-ggplot(kitsin) +
@@ -209,4 +223,37 @@ p995<-kitsin %>%
 
 #library(gridExtra)
 grid.arrange(all, p99, p995)
+
+
+
+#Bimodal effct of altitude####
+library(ggplot2)
+
+ggplot(kitsin) +
+  aes(x = row, y = range, fill = Elevation) +
+  geom_tile(size = 1.5) +
+  scale_fill_distiller(palette = "Spectral", 
+                       direction = -1) +
+  theme_minimal()
+
+kitsin.elev<-kitsin
+kitsin.elev$Flood_Affected[kitsin.elev$Flood_Affected==1]<-"Y"; kitsin.elev$Flood_Affected[kitsin.elev$Flood_Affected==0]<-"N"
+kitsin.elev$Elevation<-kitsin.elev$Elevation*0.3048
+
+#kitsin.elev$Flood_Affected[which(kitsin$Elevation>quantile(kitsin$Elevation, 0.50, na.rm=TRUE))]<-2
+
+ggplot(kitsin.elev) +
+ aes(x = Elevation, y = Yield, colour = Flood_Affected) +
+ geom_point(size = 1.78) +
+ geom_smooth(span = 1L, method='lm') +
+ scale_color_manual(values=c("black", "dark red")) +
+ labs(x = "Elevation (m)", y = "Yield (kg m-2)", color = "Flood?") +
+ theme_minimal()+
+  theme(legend.text=element_text(size=18),axis.text=element_text(size=18),
+        plot.title=element_text(size=26), axis.title=element_text(size=18,face="bold"), legend.title = element_text(size=20))+
+ ylim(c(0.5, 4))
+
+dev.copy(png,'C:/Users/Bethany/Desktop/floodelev.png', width=700, height=500)
+dev.off()
+
 

@@ -24,6 +24,9 @@ lai.raw<-read.csv('LidarLAI_2019.csv', skip=2, stringsAsFactors = FALSE)
 yield.raw<-read.csv('2019_Yield_1.csv')#read.csv('Yield_2019_1.csv') #read.csv('Yield_2019.csv')
 alt.raw<-read.csv('GPS_2019.csv')
 lodge.raw<-read.csv("Lodging_2019.csv")
+lodge2.raw<-read.delim("SDP_2019_LODGING_EVALUATION1.txt", header=TRUE)
+rates.raw<-read.csv("UAV_FEATURES_SDP_2019.csv"); rates.raw<-rates.raw[rates.raw$Dates==60,] #DAP 80 is July 30
+
 setwd(dir.main)
 
 #Read in albedo dataset (will take a long time the first time)
@@ -82,35 +85,34 @@ light7<-merge(light6, alt.raw, by.x=c('row', 'range'), by.y=c('row', 'range'),al
 light8<-merge(light7, sr.raw, by.x=c('row', 'range'), by.y=c('row', 'range'),all.x=TRUE, sort=FALSE) #Add albedo
 
 light9<-merge(light8, y=flood.raw, by.x=c('row', 'range'), by.y=c('RowStart', 'Range'), all.x=TRUE, sort=FALSE)#Add flood index
-light9<-light9[order(light9$exp.order),];light9$Edge[is.na(light9$Edge)]<-0 #requires reordering, setting NAs to 0
+light10<-merge(light9, y=lodge2.raw, by.x=c('plot_id.x'), by.y=c('PLOTID'), all.x=TRUE, sort=FALSE)#Add flood index
+
+light11<-merge(light10, rates.raw, by.x=c('plot_id.x'), by.y=c('plot_id'), all.x=TRUE, sort=FALSE)
+
+light11<-light11[order(light11$exp.order),];light11$Edge[is.na(light11$Edge)]<-0 #requires reordering, setting NAs to 0
 #####
 
 #Clear out junk columns; creates 'dat.lp' ####
 
-light.full<-light9
+light.full<-light11
+
+colnames(light.full)[colnames(light.full)=="Score.x"]<-"Score"
+colnames(light.full)[colnames(light.full)=="Score.y"]<-"Score2"
+
 colnames(light.full)
 
 var.want<-c("row", "range", "dectime", "DOY.x", "H", "M","S",
             "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
             "noisy","ns","raw.order","exp.order","plot_id","genotype_name","block_id", "set_id",
-            "row_density","height","lai", "above_ground_dry_yield","plot_id.x","x", "y", "z","Score", "vis.400.700", "nir.700.1000", "ndvi", "Edge")
+            "row_density","height","lai", "above_ground_dry_yield","plot_id.x","x", "y", "z","Score", 
+            "vis.400.700", "nir.700.1000", "ndvi", "Edge", "Score2","DSM_p", "DSM_slp",
+            "GC_p", "GC_slp", "NDVI_p", "NDVI_slp")
   
-  #Full variable list
-  #c("row", "range", "dectime", "DOY.x", "H", "M","S","BattV_Min",
-  #"PanelT", "PPF1_Avg", "PPF2_Avg", "PPF3_Avg", "PPF4_Avg", "PPF5_Avg","PPF_above_Avg",
-  #"noisy","ns","raw.order","exp.order","year" , "site_id","plot_id" , "row_set", "genotype_name","block_id", "ndvi", "set_id",
-  #"date.x","row_density","comment","date.y","height","YEAR.x", "DOY.y", "date","lai","YEAR.y","DOY")
 
 cols<-which(colnames(light.full)%in%var.want); colnames(light.full)[cols] #Columns of data you want; excludes duplicate metadata, dates, etc.
 dat.lp<-light.full[,cols]
-dat.look<-dat.lp[,c(1:3, 15:32)]
+dat.look<-dat.lp[,c(1:4, 16:33)]
 #####
-# 
-# #Grab checkline plots; creates dat.check #####
-# library(stringr)
-# checkind<-str_detect(dat.lp$set_id, "CHK")
-# dat.check<-dat.lp[str_detect(dat.lp$set_id, "CHK"),]
-# #####
 
 
 
@@ -158,8 +160,8 @@ dat.check.bord<-merge(dat.check, bord.lp,all=TRUE)
 
 
 #CLEANUP
-rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light5','light6', 'light7','light8','light9','light','plot.cl','splits','heights.lp','lai.lp', 'light.full', 'timestamp.col', 'split.dir', 'doy.of.interest', 'modtop','newtops', 'rowtops', 'dat.sr') #intermediate steps in processing
-rm('count.raw', 'info.raw', 'heights.raw','lai.raw', 'yield.raw', 'lodge.raw', 'alt.raw', 'sr.raw', 'flood.raw') #Raw ancillary
+rm('lp.raw','lp.ts','light1','light2','light3','light4', 'light5','light6', 'light7','light8','light9','light10','light11','light','plot.cl','splits','heights.lp','lai.lp', 'light.full', 'timestamp.col', 'split.dir', 'doy.of.interest', 'modtop','newtops', 'rowtops', 'dat.sr') #intermediate steps in processing
+rm('count.raw', 'info.raw', 'heights.raw','lai.raw', 'yield.raw', 'lodge.raw','lodge2.raw','rates.raw', 'alt.raw', 'sr.raw', 'flood.raw') #Raw ancillary
 
 rm('dat.lp.orig') #Comment this out if you want uncorrected top-of-canopy light levels
 rm('plotmeans','refl')#Comment this out if you want border plots and spectral reflectances

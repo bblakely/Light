@@ -1,6 +1,6 @@
 #Run linear modeling before running this script
 
-dat.raw<-kitsin.full #dataset of interesting variables
+if(!exists("kitsin")){source('LinearModeling_2.R')}
 
 library(lavaan)
 library(semPlot)
@@ -21,10 +21,10 @@ NIR_VIS_ratio~Flood_Affected_1+Elevation
 
 #Model to mess with
 model<-'
-Yield~LAI+Height+Lodging_Score+Elevation+Proportion_Saturated_Sun+NIR_VIS_ratio
+Yield~LAI+Height+Lodging_Score2+Elevation+Proportion_Saturated_Sun+NDVI
 LAI~Flood_Affected_1+Height
 Height~Flood_Affected_1
-Lodging_Score~Height
+Lodging_Score2~Height
 Proportion_Saturated_Sun~Height+LAI
 NIR_VIS_ratio~Flood_Affected_1
 
@@ -96,26 +96,31 @@ kitsin.num.norm1<-cbind(kitsin.num.norm, kitsin.dum)
 kitsin.std.norm<-cbind(scale(kitsin.num.norm, center=TRUE), kitsin.dum)
 kitsin.calm<-kitsin.std.norm[which(kitsin.nums$Lodging_Score==0&kitsin.std.norm$Flood_Affected_1==0),]
 
+kitsin.calm.ns<-kitsin[which(kitsin$Lodging_Score==0&kitsin$Flood_Affected==0),]
+
+
+par(mfrow=c(1,1))
+
 model<-'
-Yield~Height+LAI+Lodging_Score+NIR_VIS_ratio+Proportion_Saturated_Sun+Elevation_Above+Flood_Affected_1
+Yield~Height+LAI+Lodging_Score2+NDVI+Proportion_Saturated_Sun+Elevation_Above+Flood_Affected_1
 LAI~Flood_Affected_1+Height+Elevation_Above
 Height~Flood_Affected_1+Elevation_Above
 Proportion_Saturated_Sun~Height+LAI+Flood_Affected_1
-NIR_VIS_ratio~Flood_Affected_1
-Lodging_Score~Height
+NDVI~Flood_Affected_1
+Lodging_Score2~Height
 '
 
 model.calm<-'
-Yield~Height+LAI+NIR_VIS_ratio+Proportion_Saturated_Sun+Elevation_Above
-LAI~Height+Elevation_Above
-Height~Elevation_Above
+Yield~Height+LAI+NDVI+Proportion_Saturated_Sun
+LAI~Height
 Proportion_Saturated_Sun~Height+LAI
+
 '
 
 #problem: call in lavaan syntax; effects.sem does not work on lavaan output
 
 test.std<-sem(model, data=kitsin.std.norm, estimator="MLM")
-#test.std<-sem(model.calm, data=kitsin.calm, estimator="MLM")
+test.std<-sem(model.calm, data=kitsin.calm, estimator="MLM")
 
 summary(test.std, fit.measures = TRUE, standardized=F,rsquare=T)
 semPaths(test.std, 'std', layout='circle',residuals=FALSE, exoCov=FALSE, nCharNodes=5)
@@ -136,12 +141,12 @@ thing<-effects(test.std)
 
 
 modelparam<-'
-Yield~b1*Height+b2*LAI+b3*Lodging_Score+b4*NIR_VIS_ratio+b5*Proportion_Saturated_Sun+c1*Elevation_Above+c2*Flood_Affected_1
+Yield~b1*Height+b2*LAI+b3*Lodging_Score2+b4*NDVI+b5*Proportion_Saturated_Sun+c1*Elevation_Above+c2*Flood_Affected_1
 LAI~a3*Flood_Affected_1+d1*Height+a7*Elevation_Above
 Height~a4*Flood_Affected_1+a6*Elevation_Above
 Proportion_Saturated_Sun~d2*Height+d3*LAI+a2*Flood_Affected_1
-NIR_VIS_ratio~a1*Flood_Affected_1
-Lodging_Score~d4*Height
+NDVI~a1*Flood_Affected_1
+Lodging_Score2~d4*Height
 
 a4b1:= a4*b1
 a4d2:= a4*d2
